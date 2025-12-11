@@ -3,17 +3,19 @@
 
 /* import des styles des pages */
 @import "./pages/svg-demo1/style.css";
+@import "./pages/svg-ma-demo/style.css";
 
 /* import des styles des composants UI */
 @import "./ui/header/style.css";
 @import "./ui/footer/style.css";
 @import "./ui/spinner/style.css";
 @import "./ui/star/style.css";
+@import "./ui/tree-skills/style.css";
 
 :root {
   /* Primitives Tokens */
   --color-neutral-100: #ffffff;
-  --color-neutral-900: #1a1a1a;
+  --color-neutral-900: #000000;
   --color-blue-500: #3b82f6;
   --color-green-500: #10b981;
   --color-red-500: #ef4444;
@@ -24,4 +26,5 @@
   --color-primary: var(--color-blue-500);
   --color-success: var(--color-green-500);
   --color-danger: var(--color-red-500);
+  
 }

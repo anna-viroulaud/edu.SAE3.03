@@ -1,0 +1,81 @@
+/* Tree Skills Component Styles */
+.tree-skills-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100vh;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.tree-skills-container svg {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
+/* Couleurs des compétences */
+
+/* Comprendre - rouge #C2211C */
+#comprendre_niv0 path[id^="Vector"] {
+  fill: #C2211C;
+  stroke: #C2211C;
+}
+#Comprendre path {
+  fill: #C2211C;
+}
+
+/* Concevoir - orange #FB8036 */
+#concevoir_niv0 path[id^="Vector"] {
+  fill: #FB8036;
+  stroke: #FB8036;
+}
+#Concevoir path {
+  fill: #FB8036;
+}
+
+/* Exprimer - jaune #EBBA14 */
+#exprimer_niv0 path[id^="Vector"] {
+  fill: #EBBA14;
+  stroke: #EBBA14;
+}
+#Exprimer path {
+  fill: #EBBA14;
+}
+
+/* Entreprendre - cyan #1AC9BA */
+#entreprendre_niv0 path[id^="Vector"] {
+  fill: #1AC9BA;
+  stroke: #1AC9BA;
+}
+#Entreprendre path {
+  fill: #1AC9BA;
+}
+
+/* Développer - vert #48D57C */
+#developper_niv0 path[id^="Vector"] {
+  fill: #48D57C;
+  stroke: #48D57C;
+}
+#DÃ©velopper path {
+  fill: #48D57C;
+}
+
+/* Effet hover sur les éléments du niveau 1 entreprendre */
+#entreprendre_niv1 g:hover {
+  filter: brightness(1.2);
+  transition: filter 0.2s ease;
+  cursor: pointer;
+}
+
+/* Interactive elements cursor */
+#comprendre_niv0 {
+  cursor: pointer;
+}
+
+#comprendre_niv0:hover {
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
