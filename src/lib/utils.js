@@ -15,9 +15,24 @@ let genericRenderer = function(template, data){
 
 /**
  * Converts an HTML string into a DocumentFragment.
+ * Used for layouts and pages according to architecture.
  *
  * @param {string} htmlString - The HTML string to convert.
  * @returns {DocumentFragment} - A DocumentFragment containing the parsed HTML elements.
+ */
+function htmlToFragment(htmlString) {
+    const template = document.createElement('template');
+    template.innerHTML = htmlString.trim();
+    return template.content;
+}
+
+/**
+ * Converts an HTML string into a single DOM Element.
+ * Returns the first child element of the parsed HTML.
+ * Used for UI components when you need a single element.
+ *
+ * @param {string} htmlString - The HTML string to convert.
+ * @returns {Element} - The first child element.
  */
 function htmlToDOM(htmlString) {
     const template = document.createElement('template');
@@ -39,4 +54,4 @@ function randomHexaColor(){
 }
 
 
-export { genericRenderer, htmlToDOM, randomHexaColor };
+export { genericRenderer, htmlToDOM, htmlToFragment, randomHexaColor };
