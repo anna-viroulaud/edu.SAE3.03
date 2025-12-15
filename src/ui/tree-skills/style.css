@@ -16,113 +16,28 @@
   height: auto;
 }
 
-/* Couleurs des compétences */
-
-/* Comprendre - rouge #C2211C */
-#comprendre_niv0 path[id^="Vector"] {
-  fill: #C2211C;
-  stroke: #C2211C;
-}
-#Comprendre path {
-  fill: #C2211C;
+/* Couleurs des 5 compétences principales */
+#Comprendre {
+  fill: #FF2722 ;
+  stroke: #FF2722 ;
 }
 
-/* Concevoir - orange #FB8036 */
-#concevoir_niv0 path[id^="Vector"] {
-  fill: #FB8036;
-  stroke: #FB8036;
-}
-#Concevoir path {
-  fill: #FB8036;
+#Concevoir {
+  fill: #FB8036 ;
+  stroke: #FB8036 ;
 }
 
-/* Exprimer - jaune #EBBA14 */
-#exprimer_niv0 path[id^="Vector"] {
-  fill: #EBBA14;
-  stroke: #EBBA14;
-}
-#Exprimer path {
-  fill: #EBBA14;
+#Exprimer {
+  fill: #EBBA14 ;
+  stroke: #EBBA14 ;
 }
 
-/* Entreprendre - cyan #1AC9BA */
-#entreprendre_niv0 path[id^="Vector"] {
-  fill: #1AC9BA;
-  stroke: #1AC9BA;
-}
-#Entreprendre path {
-  fill: #1AC9BA;
+#Developper {
+  fill: #48D57C ;
+  stroke: #48D57C ;
 }
 
-/* Développer - vert #48D57C */
-#developper_niv0 path[id^="Vector"] {
-  fill: #48D57C;
-  stroke: #48D57C;
-}
-#DÃ©velopper path {
-  fill: #48D57C;
-}
-
-/* Effet hover sur les éléments du niveau 1 entreprendre */
-#entreprendre_niv1 g:hover {
-  filter: brightness(1.2);
-  transition: filter 0.2s ease;
-  cursor: pointer;
-}
-
-/* Interactive elements cursor */
-#comprendre_niv0 {
-  cursor: pointer;
-}
-
-#comprendre_niv0:hover {
-  opacity: 0.9;
-  transition: opacity 0.2s ease;
-}
-
-/* ========================================
-   États de progression des AC
-   ======================================== */
-
-/* Rectangle de remplissage avec animation */
-.progress-fill {
-  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Progression 0% - Pas de remplissage */
-g[id^="AC"].prog-0 rect {
-  transition: all 0.3s ease;
-}
-
-g[id^="AC"].prog-0 .progress-fill {
-  fill: transparent !important;
-}
-
-/* Progression 25% - Légèrement rempli */
-g[id^="AC"].prog-25 .progress-fill {
-  fill: #6E7275 !important;
-}
-
-/* Progression 50% - Mi-rempli */
-g[id^="AC"].prog-50 .progress-fill {
-  fill: #6E7275 !important;
-}
-
-/* Progression 75% - Presque rempli */
-g[id^="AC"].prog-75 .progress-fill {
-  fill: #6E7275 !important;
-}
-
-/* Progression 100% - Totalement rempli */
-g[id^="AC"].prog-100 .progress-fill {
-  fill: #6E7275 !important;
-}
-
-/* Effet visuel sur les AC avec progression */
-g[id^="AC"][class*="prog-"] {
-  transition: all 0.3s ease;
-}
-
-g[id^="AC"][class*="prog-"]:hover .progress-fill {
-  filter: brightness(1.3);
+#Entreprendre {
+  fill: #1AC9BA ;
+  stroke: #1AC9BA ;
 }

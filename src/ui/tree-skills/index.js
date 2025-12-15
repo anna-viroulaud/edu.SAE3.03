@@ -1,4 +1,5 @@
 import { htmlToDOM } from "../../lib/utils.js";
+import { Animation } from "../../lib/animation.js";
 import template from "./template.html?raw";
 
 /**
@@ -9,6 +10,7 @@ import template from "./template.html?raw";
 class TreeSkillsView {
   constructor() {
     this.root = htmlToDOM(template);
+    this.animationPlayed = false;
   }
 
   /**
@@ -23,6 +25,14 @@ class TreeSkillsView {
    */
   dom() {
     return this.root;
+  }
+
+  /**
+   * Lance l'animation d'entrée du graphe
+   */
+  playEntryAnimation() {
+    // Animations désactivées temporairement
+    this.animationPlayed = true;
   }
 
   /**
@@ -49,7 +59,6 @@ class TreeSkillsView {
       acElement.style.cursor = 'pointer';
       
       acElement.addEventListener('click', () => {
-        // Passer juste l'ID, le Controller ira chercher les données dans le Model
         onACClick(acElement.id);
       });
     });
@@ -82,17 +91,29 @@ class TreeSkillsView {
     const acElement = this.root.getElementById(acCode);
     if (!acElement) return;
 
+    // Map des couleurs par niveau
+    const levelColors = {
+      '11': '#EE6E6E', '21': '#F13434', '31': '#FF2722',  // Comprendre
+      '12': '#FFA758', '22': '#F78B4A', '32': '#FF5F00',  // Concevoir
+      '13': '#E2D19B', '23': '#FFDA41', '33': '#EFBA11',  // Exprimer
+      '14': '#D8FFAE', '24': '#B7FF6B', '34': '#48D57C',  // Développer
+      '15': '#C8D8EF', '25': '#89ADD9', '35': '#19C8BA',  // Entreprendre
+    };
+
+    // Extraire le niveau (ex: AC11.01 -> "11")
+    const levelCode = acCode.substring(2, 4);
+    const levelColor = levelColors[levelCode] || '#6E7275';
+
     // Trouver le rectangle principal de l'AC
     const rect = acElement.querySelector('rect');
     if (!rect) return;
 
     // Récupérer les dimensions originales du rectangle
-    const rectWidth = parseFloat(rect.getAttribute('width')); // 36.003
+    const rectWidth = parseFloat(rect.getAttribute('width'));
     const rectX = parseFloat(rect.getAttribute('x'));
     const rectY = parseFloat(rect.getAttribute('y'));
     const rectHeight = parseFloat(rect.getAttribute('height'));
     const rectRx = rect.getAttribute('rx');
-    const rectStroke = rect.getAttribute('stroke');
     const rectStrokeWidth = rect.getAttribute('stroke-width');
 
     // Calculer la largeur du remplissage en fonction de la progression
@@ -109,34 +130,79 @@ class TreeSkillsView {
       fillRect.setAttribute('y', rectY);
       fillRect.setAttribute('height', rectHeight);
       fillRect.setAttribute('rx', rectRx);
-      fillRect.setAttribute('fill', '#6E7275');
-      fillRect.setAttribute('stroke', rectStroke);
       fillRect.setAttribute('stroke-width', rectStrokeWidth);
       
-      // Insérer après le rectangle noir
+      // Insérer après le rectangle principal
       rect.parentNode.insertBefore(fillRect, rect.nextSibling);
     }
 
-    // Mettre à jour la largeur du remplissage avec animation
+    // Mettre à jour la largeur et la couleur du rectangle de progression
     fillRect.setAttribute('width', fillWidth);
+    fillRect.setAttribute('fill', levelColor);
+    fillRect.setAttribute('stroke', levelColor);
+    fillRect.setAttribute('opacity', '0.8');
+  }
 
-    // Supprimer les anciennes classes de progression
-    acElement.classList.remove('prog-0', 'prog-25', 'prog-50', 'prog-75', 'prog-100');
-
-    // Appliquer la classe selon la progression
-    if (progression === 0) {
-      acElement.classList.add('prog-0');
-    } else if (progression < 50) {
-      acElement.classList.add('prog-25');
-    } else if (progression < 75) {
-      acElement.classList.add('prog-50');
-    } else if (progression < 100) {
-      acElement.classList.add('prog-75');
-    } else {
-      acElement.classList.add('prog-100');
+  /**
+   * Met à jour TOUS les cercles de niveau selon les progressions
+   * @param {Object} progressions - Objet {acCode: progression}
+   */
+  updateAllLevels(progressions) {
+    // Pour chaque AC avec progression, trouver et mettre à jour son cercle level
+    for (const acCode in progressions) {
+      if (progressions[acCode] <= 0) continue;
+      
+      const acElement = this.root.getElementById(acCode);
+      if (!acElement) continue;
+      
+      const levelCircle = this._findLevelCircleForAC(acElement);
+      if (levelCircle) {
+        this._setLevelActive(levelCircle);
+      }
     }
+  }
 
-    console.log(`🎨 Visuel mis à jour : ${acCode} = ${progression}% (width: ${fillWidth.toFixed(1)}px)`);
+  /**
+   * Trouve le cercle de niveau associé à un AC
+   * @param {Element} acElement - Élément AC du DOM
+   * @returns {Element|null} - Le cercle (circle ou ellipse) du niveau
+   * @private
+   */
+  _findLevelCircleForAC(acElement) {
+    // Remonter jusqu'au groupe "niveau_X" qui contient les AC et leur level
+    let niveauGroup = acElement.parentElement;
+    while (niveauGroup && !niveauGroup.id.startsWith('niveau_')) {
+      niveauGroup = niveauGroup.parentElement;
+    }
+    
+    if (!niveauGroup) return null;
+    
+    // Trouver le groupe level dans ce même groupe niveau
+    const levelGroup = niveauGroup.querySelector('g[id^="level_"]');
+    if (!levelGroup) return null;
+    
+    // Retourner le cercle ou ellipse
+    return levelGroup.querySelector('circle, ellipse');
+  }
+
+  /**
+   * Active visuellement un cercle de niveau (stroke blanc)
+   * @param {Element} circle - Le cercle à activer
+   * @private
+   */
+  _setLevelActive(circle) {
+    circle.setAttribute('stroke', '#FFFFFF');
+    circle.setAttribute('stroke-width', '3');
+  }
+
+  /**
+   * Désactive visuellement un cercle de niveau (stroke gris)
+   * @param {Element} circle - Le cercle à désactiver
+   * @private
+   */
+  _setLevelInactive(circle) {
+    circle.setAttribute('stroke', '#6E7275');
+    circle.setAttribute('stroke-width', '2.69903');
   }
 }
 

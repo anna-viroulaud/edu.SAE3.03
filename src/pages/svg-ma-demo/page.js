@@ -147,6 +147,9 @@ C.handleACValidation = function(acCode, progression) {
   // Mettre à jour le visuel du SVG
   V.treeSkills.updateACVisual(acCode, progression);
   
+  // Mettre à jour tous les niveaux
+  V.treeSkills.updateAllLevels(M.progressions);
+  
   // Fermer la popup
   V.popupAC.close();
 }
@@ -211,6 +214,9 @@ V.init = function() {
     
     // Appliquer les progressions chargées depuis localStorage 
     V.applyStoredProgressions();
+    
+    // Lancer l'animation d'entrée
+    V.treeSkills.playEntryAnimation();
   }, 0);
   
   return V.rootPage;
@@ -230,11 +236,9 @@ V.applyStoredProgressions = function() {
     }
   }
   
-  if (appliedCount > 0) {
-    console.log(`[Progression] ${appliedCount} progression(s) appliquee(s) aux visuels`);
-  }
+  // Mettre à jour tous les niveaux selon les progressions
+  V.treeSkills.updateAllLevels(M.progressions);
 }
-
 
 export function SvgMaDemoPage() {
   return C.init();
