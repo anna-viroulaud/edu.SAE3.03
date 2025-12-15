@@ -79,3 +79,50 @@
   opacity: 0.9;
   transition: opacity 0.2s ease;
 }
+
+/* ========================================
+   États de progression des AC
+   ======================================== */
+
+/* Rectangle de remplissage avec animation */
+.progress-fill {
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Progression 0% - Pas de remplissage */
+g[id^="AC"].prog-0 rect {
+  transition: all 0.3s ease;
+}
+
+g[id^="AC"].prog-0 .progress-fill {
+  fill: transparent !important;
+}
+
+/* Progression 25% - Légèrement rempli */
+g[id^="AC"].prog-25 .progress-fill {
+  fill: #6E7275 !important;
+}
+
+/* Progression 50% - Mi-rempli */
+g[id^="AC"].prog-50 .progress-fill {
+  fill: #6E7275 !important;
+}
+
+/* Progression 75% - Presque rempli */
+g[id^="AC"].prog-75 .progress-fill {
+  fill: #6E7275 !important;
+}
+
+/* Progression 100% - Totalement rempli */
+g[id^="AC"].prog-100 .progress-fill {
+  fill: #6E7275 !important;
+}
+
+/* Effet visuel sur les AC avec progression */
+g[id^="AC"][class*="prog-"] {
+  transition: all 0.3s ease;
+}
+
+g[id^="AC"][class*="prog-"]:hover .progress-fill {
+  filter: brightness(1.3);
+}

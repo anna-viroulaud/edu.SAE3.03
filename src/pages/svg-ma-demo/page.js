@@ -13,6 +13,29 @@ let M = {};
 let response = await fetch('/src/data/tree.json');
 M.treeData = await response.json();
 
+// Stockage des progressions des AC en mémoire
+// Format: { "AC11.01": 75, "AC21.03": 50, ... }
+M.progressions = {};
+
+/**
+ * Sauvegarde la progression d'un AC
+ * @param {string} acCode - Code de l'AC (ex: "AC11.01")
+ * @param {number} progression - Valeur de 0 à 100
+ */
+M.setACProgression = function(acCode, progression) {
+  M.progressions[acCode] = parseInt(progression);
+  console.log(`Progression sauvegardée : ${acCode} = ${progression}%`);
+}
+
+/**
+ * Récupère la progression d'un AC
+ * @param {string} acCode - Code de l'AC
+ * @returns {number} Progression (0-100), par défaut 0
+ */
+M.getACProgression = function(acCode) {
+  return M.progressions[acCode] || 0;
+}
+
 /**
  * Récupère les données d'un AC par son code
  * @param {string} acCode - Code de l'AC (ex: "AC11.01")
@@ -77,8 +100,24 @@ C.init = function() {
 C.handleACClick = function(acCode) {
   const acData = M.getACByCode(acCode);
   if (acData) {
+    // Ajouter la progression actuelle aux données
+    acData.progression = M.getACProgression(acCode);
     V.popupAC.open(acData);
   }
+}
+
+/**
+ * Gère la validation de la progression d'un AC
+ */
+C.handleACValidation = function(acCode, progression) {
+  // Sauvegarder dans le Model
+  M.setACProgression(acCode, progression);
+  
+  // Mettre à jour le visuel du SVG
+  V.treeSkills.updateACVisual(acCode, progression);
+  
+  // Fermer la popup
+  V.popupAC.close();
 }
 
 /**
@@ -121,6 +160,7 @@ V.init = function() {
   // Attacher les événements des popups
   V.popupAC.attachEvents();
   V.popupAC.initSlider();
+  V.popupAC.setOnValidate(C.handleACValidation); // ← Connecter le callback de validation
   V.popupLevel.attachEvents();
   
   setTimeout(() => {
