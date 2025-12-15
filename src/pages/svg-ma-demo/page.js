@@ -1,6 +1,7 @@
 import { TreeSkillsView } from "@/ui/tree-skills";
 import { PopupACView } from "@/ui/popup-ac";
 import { PopupLevelView } from "@/ui/popup-level";
+import { chargerProgressions, sauvegarderProgression } from "@/lib/progression.js";
 import { htmlToDOM } from "@/lib/utils.js";
 import template from "./template.html?raw";
 
@@ -13,18 +14,22 @@ let M = {};
 let response = await fetch('/src/data/tree.json');
 M.treeData = await response.json();
 
-// Stockage des progressions des AC en mémoire
-// Format: { "AC11.01": 75, "AC21.03": 50, ... }
+// Stockage des progressions
 M.progressions = {};
 
 /**
+ * Charge les progressions depuis localStorage
+ */
+M.loadProgressions = function() {
+  M.progressions = chargerProgressions();
+}
+
+/**
  * Sauvegarde la progression d'un AC
- * @param {string} acCode - Code de l'AC (ex: "AC11.01")
- * @param {number} progression - Valeur de 0 à 100
  */
 M.setACProgression = function(acCode, progression) {
   M.progressions[acCode] = parseInt(progression);
-  console.log(`Progression sauvegardée : ${acCode} = ${progression}%`);
+  sauvegarderProgression(M.progressions);
 }
 
 /**
@@ -91,6 +96,9 @@ M.getLevelByCode = function(levelId) {
 let C = {};
 
 C.init = function() {
+
+  M.loadProgressions();
+  
   return V.init();
 }
 
@@ -167,9 +175,31 @@ V.init = function() {
     // Les callbacks appellent le Controller qui va chercher les données dans le Model
     V.treeSkills.enableACInteractions(C.handleACClick);
     V.treeSkills.enableLevelInteractions(C.handleLevelClick);
+    
+    // Appliquer les progressions chargées depuis localStorage 
+    V.applyStoredProgressions();
   }, 0);
   
   return V.rootPage;
+}
+
+/**
+ * Applique les progressions sauvegardées
+ */
+V.applyStoredProgressions = function() {
+  let appliedCount = 0;
+  
+  for (const acCode in M.progressions) {
+    const progression = M.progressions[acCode];
+    if (progression > 0) {
+      V.treeSkills.updateACVisual(acCode, progression);
+      appliedCount++;
+    }
+  }
+  
+  if (appliedCount > 0) {
+    console.log(`[Progression] ${appliedCount} progression(s) appliquee(s) aux visuels`);
+  }
 }
 
 
