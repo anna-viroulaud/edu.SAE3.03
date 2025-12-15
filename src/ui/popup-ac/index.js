@@ -4,33 +4,33 @@ import "./style.css";
 
 /**
  * Composant UI popup-ac
- * Gère l'affichage des détails d'un AC (comme DetailPanel)
+ * Gère l'affichage des détails d'un AC
  */
 class PopupACView {
   constructor() {
-    this.popup = null;
+    this.root = htmlToDOM(template);
   }
 
   /**
-   * Monte la popup dans le DOM
+   * Retourne le template HTML
    */
-  mount() {
-    if (!document.getElementById('acPopup')) {
-      document.body.insertAdjacentHTML('beforeend', template);
-      this.popup = document.getElementById('acPopup');
-      this.attachEvents();
-      this.initSlider();
-    } else {
-      this.popup = document.getElementById('acPopup');
-    }
+  html() {
+    return template;
+  }
+
+  /**
+   * Retourne le DOM du composant
+   */
+  dom() {
+    return this.root;
   }
 
   /**
    * Initialise le slider de progression
    */
   initSlider() {
-    const slider = document.getElementById('progressSlider');
-    const valueDisplay = document.getElementById('progressValue');
+    const slider = this.root.querySelector('#progressSlider');
+    const valueDisplay = this.root.querySelector('#progressValue');
     
     if (slider && valueDisplay) {
       // Fonction pour mettre à jour le gradient et le texte
@@ -52,24 +52,23 @@ class PopupACView {
   /**
    * Ouvre la popup avec les données d'un AC
    */
-  open(acData) {
-    if (!this.popup) this.mount();
 
-    document.getElementById('popupCode').textContent = acData.code;
-    document.getElementById('popupLibelle').textContent = acData.libelle;
-    document.getElementById('popupAnnee').textContent = acData.annee;
-    document.getElementById('popupCompetence').textContent = acData.competence;
+  // modifier les classe par les data qui sont maintenant dans le template
+  
+  open(acData) {
+    this.root.querySelector('#popupCode').textContent = acData.code;
+    this.root.querySelector('#popupLibelle').textContent = acData.libelle;
+    this.root.querySelector('#popupAnnee').textContent = acData.annee;
+    this.root.querySelector('#popupCompetence').textContent = acData.competence;
     
-    this.popup.classList.add('active');
+    this.root.classList.add('active');
   }
 
   /**
    * Ferme la popup
    */
   close() {
-    if (this.popup) {
-      this.popup.classList.remove('active');
-    }
+    this.root.classList.remove('active');
   }
 
   /**
@@ -77,17 +76,15 @@ class PopupACView {
    */
   attachEvents() {
     // Bouton fermer
-    const closeBtn = document.getElementById('closePopupBtn');
+    const closeBtn = this.root.querySelector('#closePopupBtn');
     if (closeBtn) {
       closeBtn.addEventListener('click', () => this.close());
     }
 
     // Clic sur le fond
-    if (this.popup) {
-      this.popup.addEventListener('click', (ev) => {
-        if (ev.target === this.popup) this.close();
-      });
-    }
+    this.root.addEventListener('click', (ev) => {
+      if (ev.target === this.root) this.close();
+    });
   }
 }
 

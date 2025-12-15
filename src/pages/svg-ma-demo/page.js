@@ -4,11 +4,7 @@ import { PopupLevelView } from "@/ui/popup-level";
 import { htmlToDOM } from "@/lib/utils.js";
 import template from "./template.html?raw";
 
-/**
- * Page svg-ma-demo - VERSION SIMPLIFIÉE
- * Suit le pattern des fichiers demo (svg-demo1, svg-demo2, svg-demo3)
- * Pattern MVC simple et fonctionnel
- */
+
 
 // ========== MODEL ==========
 let M = {};
@@ -45,11 +41,18 @@ V.init = function() {
   // Injecter le SVG
   V.rootPage.querySelector('slot[name="svg"]').replaceWith(V.treeSkills.dom());
   
-  // Créer les popups
+  // Créer les popups et les injecter dans <body>
   V.popupAC = new PopupACView();
   V.popupLevel = new PopupLevelView();
+
+  V.rootPage.querySelector('slot[name="popup-ac"]').replaceWith(V.popupAC.dom());
+  V.rootPage.querySelector('slot[name="popup-level"]').replaceWith(V.popupLevel.dom());
+
+  // Attacher les événements des popups
+  V.popupAC.attachEvents();
+  V.popupAC.initSlider();
+  V.popupLevel.attachEvents();
   
-  // Activer les interactions (comme dans l'exemple GraphView)
   setTimeout(() => {
     // Clics sur les AC
     V.treeSkills.enableACInteractions((acData) => {
@@ -62,16 +65,10 @@ V.init = function() {
     });
   }, 0);
   
-  // Monter les popups dans le DOM
-  setTimeout(() => {
-    V.popupAC.mount();
-    V.popupLevel.mount();
-  }, 0);
-  
   return V.rootPage;
 }
 
-// ========== EXPORT ==========
+
 export function SvgMaDemoPage() {
   return C.init();
 }

@@ -23,7 +23,8 @@ class TreeSkillsView {
     return this;
   }
 
-  /**
+
+   /**
    * Injecte les données du JSON dans le SVG
    */
   injectData() {
@@ -80,7 +81,7 @@ class TreeSkillsView {
     return this.root.querySelectorAll('g[id^="AC"]');
   }
 
-  /**
+  /** 
    * Active les interactions sur les AC (comme dans GraphView)
    * @param {Function} onACClick - Callback appelé avec les données de l'AC cliqué
    */

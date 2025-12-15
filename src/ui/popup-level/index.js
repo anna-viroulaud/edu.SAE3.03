@@ -8,20 +8,21 @@ import "./style.css";
  */
 class PopupLevelView {
   constructor() {
-    this.popup = null;
+    this.root = htmlToDOM(template);
   }
 
   /**
-   * Monte la popup dans le DOM
+   * Retourne le template HTML
    */
-  mount() {
-    if (!document.getElementById('levelPopup')) {
-      document.body.insertAdjacentHTML('beforeend', template);
-      this.popup = document.getElementById('levelPopup');
-      this.attachEvents();
-    } else {
-      this.popup = document.getElementById('levelPopup');
-    }
+  html() {
+    return template;
+  }
+
+  /**
+   * Retourne le DOM du composant
+   */
+  dom() {
+    return this.root;
   }
 
   /**
@@ -29,16 +30,14 @@ class PopupLevelView {
    * @param {Object} levelData - { ordre, libelle, annee, competence, acs: [] }
    */
   open(levelData) {
-    if (!this.popup) this.mount();
-
     // Remplir les informations du niveau
-    document.getElementById('levelTitle').textContent = `Niveau ${levelData.ordre} - ${levelData.annee}`;
-    document.getElementById('levelDescription').textContent = levelData.libelle;
-    document.getElementById('levelCompetence').textContent = levelData.competence;
-    document.getElementById('levelAnnee').textContent = levelData.annee;
+    this.root.querySelector('#levelTitle').textContent = `Niveau ${levelData.ordre} - ${levelData.annee}`;
+    this.root.querySelector('#levelDescription').textContent = levelData.libelle;
+    this.root.querySelector('#levelCompetence').textContent = levelData.competence;
+    this.root.querySelector('#levelAnnee').textContent = levelData.annee;
 
     // Générer la liste des AC
-    const acListContainer = document.getElementById('acList');
+    const acListContainer = this.root.querySelector('#acList');
     acListContainer.innerHTML = '';
     
     levelData.acs.forEach(ac => {
@@ -53,16 +52,14 @@ class PopupLevelView {
       acListContainer.appendChild(acCard);
     });
 
-    this.popup.classList.add('active');
+    this.root.classList.add('active');
   }
 
   /**
    * Ferme la popup
    */
   close() {
-    if (this.popup) {
-      this.popup.classList.remove('active');
-    }
+    this.root.classList.remove('active');
   }
 
   /**
@@ -70,17 +67,15 @@ class PopupLevelView {
    */
   attachEvents() {
     // Bouton fermer
-    const closeBtn = document.getElementById('closeLevelPopupBtn');
+    const closeBtn = this.root.querySelector('#closeLevelPopupBtn');
     if (closeBtn) {
       closeBtn.addEventListener('click', () => this.close());
     }
 
     // Clic sur le fond
-    if (this.popup) {
-      this.popup.addEventListener('click', (ev) => {
-        if (ev.target === this.popup) this.close();
-      });
-    }
+    this.root.addEventListener('click', (ev) => {
+      if (ev.target === this.root) this.close();
+    });
   }
 }
 
