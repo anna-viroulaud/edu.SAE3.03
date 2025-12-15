@@ -1,18 +1,18 @@
-/* Level Popup Overlay */
+/* Level Popup Overlay - Style minimaliste noir/gris */
 .level-popup-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(3px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
     display: none;
     justify-content: center;
     align-items: center;
     z-index: 1000;
     opacity: 0;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
     pointer-events: none;
     padding: 20px;
 }
@@ -25,75 +25,60 @@
 
 /* Level Popup Content */
 .level-popup-content {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border-radius: 25px;
+    background: #000000;
+    border: 1.5px solid #6E7275;
+    border-radius: 8px;
     padding: 0;
     width: 100%;
-    max-width: 600px;
-    max-height: 85vh;
+    max-width: 550px;
+    max-height: 80vh;
     overflow: hidden;
     position: relative;
     box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(255, 255, 255, 0.1) inset;
-    transform: scale(0.9) translateY(30px);
-    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(110, 114, 117, 0.3) inset;
+    transform: scale(0.95);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: auto;
-    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .level-popup-overlay.active .level-popup-content {
-    transform: scale(1) translateY(0);
+    transform: scale(1);
 }
 
 /* Level Popup Header */
 .level-popup-header {
-    padding: 30px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 25px;
+    background: #000000;
+    border-bottom: 1.5px solid #6E7275;
     color: #FFFFFF;
     text-align: left;
-    border-radius: 25px 25px 0 0;
     position: relative;
-    overflow: hidden;
-}
-
-.level-popup-header::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-    border-radius: 50%;
 }
 
 .level-header-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 12px;
-    position: relative;
-    z-index: 1;
+    margin-bottom: 10px;
 }
 
 .level-title {
-    font-size: 28px;
-    font-weight: 900;
+    font-size: 24px;
+    font-weight: 700;
     margin: 0;
     color: #FFFFFF;
-    letter-spacing: -0.5px;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    letter-spacing: 1px;
     flex: 1;
+    font-family: 'Courier New', monospace;
 }
 
 .level-close-btn {
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    background: transparent;
+    border: 1.5px solid #6E7275;
+    border-radius: 4px;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -102,51 +87,49 @@
     color: #FFFFFF;
     padding: 0;
     flex-shrink: 0;
+    color: #6E7275;
+    transition: all 0.2s ease;
 }
 
 .level-close-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg) scale(1.1);
+    background: #1a1a1a;
+    border-color: #888;
+    color: #888;
 }
 
 .level-description {
-    font-size: 15px;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.95);
-    line-height: 1.5;
-    margin: 0 0 15px 0;
-    position: relative;
-    z-index: 1;
+    font-size: 13px;
+    font-weight: 400;
+    color: #CCCCCC;
+    line-height: 1.4;
+    margin: 0 0 12px 0;
 }
 
 .level-badges {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
-    position: relative;
-    z-index: 1;
 }
 
 .level-badge {
     display: inline-block;
-    padding: 6px 14px;
-    border-radius: 20px;
+    padding: 4px 12px;
+    border-radius: 4px;
     font-size: 11px;
-    font-weight: 700;
-    background: rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(10px);
+    font-weight: 600;
+    background: transparent;
     color: #FFFFFF;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid #6E7275;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 /* Level Popup Body */
 .level-popup-body {
-    padding: 30px;
-    max-height: calc(85vh - 220px);
+    padding: 25px;
+    max-height: calc(80vh - 200px);
     overflow-y: auto;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    background: #000000;
 }
 
 /* AC List Section */
@@ -155,83 +138,69 @@
 }
 
 .ac-list-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #2c3e50;
-    margin: 0 0 20px 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6E7275;
+    margin: 0 0 15px 0;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.ac-list {
+    letter-spacing: 1px;
+}.ac-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
-/* AC Card */
+/* AC Card - Style minimaliste */
 .ac-card {
-    background: #FFFFFF;
-    border-radius: 15px;
-    padding: 18px 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(102, 126, 234, 0.1);
-    transition: all 0.3s ease;
+    background: #000000;
+    border: 1px solid #6E7275;
+    border-radius: 6px;
+    padding: 15px;
+    transition: all 0.2s ease;
     cursor: pointer;
-    display: flex;
-    gap: 15px;
-    align-items: flex-start;
 }
 
 .ac-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
-    border-color: rgba(102, 126, 234, 0.3);
+    border-color: #888;
+    background: #0a0a0a;
 }
 
-.ac-card-code {
-    font-size: 14px;
-    font-weight: 900;
-    color: #667eea;
-    flex-shrink: 0;
-    padding: 6px 12px;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    border-radius: 10px;
-    letter-spacing: 0.5px;
+.ac-card-header {
+    margin-bottom: 8px;
 }
 
-.ac-card-content {
-    flex: 1;
+.ac-code {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6E7275;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
 }
 
-.ac-card-libelle {
-    font-size: 14px;
-    font-weight: 500;
-    color: #2c3e50;
-    line-height: 1.5;
+.ac-libelle {
+    font-size: 13px;
+    font-weight: 400;
+    color: #CCCCCC;
+    line-height: 1.4;
     margin: 0;
 }
 
-/* Scrollbar personnalisée */
+/* Scrollbar personnalisée - Style minimaliste */
 .level-popup-body::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
 }
 
 .level-popup-body::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 10px;
-    margin: 10px 0;
+    background: #1a1a1a;
 }
 
 .level-popup-body::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
-    transition: all 0.3s ease;
+    background: #6E7275;
+    border-radius: 2px;
 }
 
 .level-popup-body::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-    box-shadow: 0 0 8px rgba(102, 126, 234, 0.4);
+    background: #888;
 }
 
 /* Animations */
