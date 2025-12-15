@@ -1,7 +1,10 @@
 import { TreeSkillsView } from "@/ui/tree-skills";
 import { PopupACView } from "@/ui/popup-ac";
 import { PopupLevelView } from "@/ui/popup-level";
+import { HistoriquePopupView } from "@/ui/historique-popup";
+import { BtnHistoriqueView } from "@/ui/btn-historique";
 import { chargerProgressions, sauvegarderProgression } from "@/lib/progression.js";
+import { chargerHistorique, sauvegarderLog } from "@/lib/historique.js";
 import { htmlToDOM } from "@/lib/utils.js";
 import template from "./template.html?raw";
 
@@ -16,6 +19,7 @@ M.treeData = await response.json();
 
 // Stockage des progressions
 M.progressions = {};
+M.historique = [];
 
 /**
  * Charge les progressions depuis localStorage
@@ -25,11 +29,22 @@ M.loadProgressions = function() {
 }
 
 /**
+ * Charge l'historique depuis localStorage
+ */
+M.loadHistorique = function() {
+  M.historique = chargerHistorique();
+}
+
+/**
  * Sauvegarde la progression d'un AC
  */
 M.setACProgression = function(acCode, progression) {
   M.progressions[acCode] = parseInt(progression);
   sauvegarderProgression(M.progressions);
+  
+  // Enregistrer dans l'historique (US008)
+  sauvegarderLog(acCode, progression);
+  M.loadHistorique();
 }
 
 /**
@@ -98,8 +113,16 @@ let C = {};
 C.init = function() {
 
   M.loadProgressions();
+  M.loadHistorique();
   
   return V.init();
+}
+
+/**
+ * Gère l'ouverture de l'historique
+ */
+C.handleOpenHistorique = function() {
+  V.popupHistorique.open(M.historique);
 }
 
 /**
@@ -143,7 +166,9 @@ let V = {
   rootPage: null,
   treeSkills: null,
   popupAC: null,
-  popupLevel: null
+  popupLevel: null,
+  popupHistorique: null,
+  btnHistorique: null
 };
 
 /**
@@ -161,15 +186,23 @@ V.init = function() {
   // Créer les popups et les injecter dans les slots
   V.popupAC = new PopupACView();
   V.popupLevel = new PopupLevelView();
+  V.popupHistorique = new HistoriquePopupView();
+  V.btnHistorique = new BtnHistoriqueView();
 
   V.rootPage.querySelector('slot[name="popup-ac"]').replaceWith(V.popupAC.dom());
   V.rootPage.querySelector('slot[name="popup-level"]').replaceWith(V.popupLevel.dom());
+  
+  // Ajouter l'historique et le bouton au body (pas dans les slots)
+  document.body.appendChild(V.popupHistorique.dom());
+  document.body.appendChild(V.btnHistorique.dom());
 
   // Attacher les événements des popups
   V.popupAC.attachEvents();
   V.popupAC.initSlider();
-  V.popupAC.setOnValidate(C.handleACValidation); // ← Connecter le callback de validation
+  V.popupAC.setOnValidate(C.handleACValidation);
   V.popupLevel.attachEvents();
+  V.popupHistorique.attachEvents();
+  V.btnHistorique.onClick(C.handleOpenHistorique);
   
   setTimeout(() => {
     // Les callbacks appellent le Controller qui va chercher les données dans le Model
