@@ -11,13 +11,84 @@ let M = {};
 
 // Chargement des données au top level
 let response = await fetch('/src/data/tree.json');
-M.treeData = (await response.json())[0];
+M.treeData = await response.json();
+
+/**
+ * Récupère les données d'un AC par son code
+ * @param {string} acCode - Code de l'AC (ex: "AC11.01")
+ */
+M.getACByCode = function(acCode) {
+  for (const competenceId in M.treeData) {
+    const competence = M.treeData[competenceId];
+    
+    for (const niveau of competence.niveaux) {
+      const ac = niveau.acs.find(a => a.code === acCode);
+      if (ac) {
+        return {
+          code: ac.code,
+          libelle: ac.libelle,
+          annee: niveau.annee,
+          competence: competence.nom_court
+        };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Récupère les données d'un niveau par son ID
+ * @param {string} levelId - ID du niveau (ex: "level_1", "level_1_2")
+ */
+M.getLevelByCode = function(levelId) {
+  let niveauCount = 0;
+  const levelNumber = parseInt(levelId.split('_').pop());
+  
+  for (const competenceId in M.treeData) {
+    const competence = M.treeData[competenceId];
+    
+    for (const niveau of competence.niveaux) {
+      niveauCount++;
+      
+      if (niveauCount === levelNumber) {
+        return {
+          ordre: niveau.ordre,
+          libelle: niveau.libelle,
+          annee: niveau.annee,
+          competence: competence.nom_court,
+          acs: niveau.acs
+        };
+      }
+    }
+  }
+  return null;
+}
 
 // ========== CONTROLLER ==========
 let C = {};
 
 C.init = function() {
   return V.init();
+}
+
+/**
+ * Gère le clic sur un AC
+ */
+C.handleACClick = function(acCode) {
+  const acData = M.getACByCode(acCode);
+  if (acData) {
+    V.popupAC.open(acData);
+  }
+}
+
+/**
+ * Gère le clic sur un niveau
+ */
+C.handleLevelClick = function(levelId) {
+  const levelData = M.getLevelByCode(levelId);
+  if (levelData) {
+    V.popupLevel.open(levelData);
+  }
 }
 
 // ========== VIEW ==========
@@ -34,14 +105,13 @@ let V = {
 V.init = function() {
   V.rootPage = htmlToDOM(template);
   
-  // Créer le composant TreeSkills avec les données
+  // Créer le composant TreeSkills (juste le SVG, pas de données injectées)
   V.treeSkills = new TreeSkillsView();
-  V.treeSkills.setData(M.treeData);
   
   // Injecter le SVG
   V.rootPage.querySelector('slot[name="svg"]').replaceWith(V.treeSkills.dom());
   
-  // Créer les popups et les injecter dans <body>
+  // Créer les popups et les injecter dans les slots
   V.popupAC = new PopupACView();
   V.popupLevel = new PopupLevelView();
 
@@ -54,15 +124,9 @@ V.init = function() {
   V.popupLevel.attachEvents();
   
   setTimeout(() => {
-    // Clics sur les AC
-    V.treeSkills.enableACInteractions((acData) => {
-      V.popupAC.open(acData);
-    });
-    
-    // Clics sur les niveaux (level_*)
-    V.treeSkills.enableLevelInteractions((levelData) => {
-      V.popupLevel.open(levelData);
-    });
+    // Les callbacks appellent le Controller qui va chercher les données dans le Model
+    V.treeSkills.enableACInteractions(C.handleACClick);
+    V.treeSkills.enableLevelInteractions(C.handleLevelClick);
   }, 0);
   
   return V.rootPage;
