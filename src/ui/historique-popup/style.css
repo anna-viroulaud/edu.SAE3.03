@@ -5,92 +5,127 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
   z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .historique-popup.active {
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 1;
 }
 
 .historique-content {
-  background: var(--color-white);
-  border-radius: var(--radius-md);
+  background: var(--color-black);
+  border: 1.5px solid var(--color-stroke-default);
+  border-radius: var(--spacing-xs);
   width: 90%;
   max-width: 600px;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.historique-popup.active .historique-content {
+  transform: scale(1);
 }
 
 .historique-header {
   padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-gray-medium);
+  border-bottom: 1.5px solid var(--color-stroke-default);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: var(--color-black);
 }
 
 .historique-header h2 {
   margin: 0;
-  font-size: 1.5rem;
-  color: var(--color-gray-darker);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-white);
+  letter-spacing: 0.5px;
+  font-family: 'Courier New', monospace;
 }
 
 .close-btn {
-  background: none;
-  border: none;
-  font-size: 2rem;
+  background: transparent;
+  border: 1px solid var(--color-stroke-default);
+  border-radius: 4px;
+  font-size: 1.2rem;
   cursor: pointer;
-  color: var(--color-gray-dark);
+  color: var(--color-white);
   line-height: 1;
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  transition: color 0.2s;
+  padding: 4px 10px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .close-btn:hover {
-  color: var(--color-gray-darker);
+  background: var(--color-stroke-default);
+  border-color: var(--color-white);
 }
 
 .historique-body {
   padding: var(--spacing-lg);
   overflow-y: auto;
   flex: 1;
+  background: var(--color-black);
 }
 
 .historique-item {
   padding: var(--spacing-md);
   margin-bottom: var(--spacing-sm);
-  background: var(--color-gray-light);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: var(--spacing-xs);
-  border-left: 4px solid var(--color-stroke-default);
+  border: 1px solid var(--color-stroke-default);
+  border-left: 3px solid var(--color-stroke-default);
+  transition: all 0.2s ease;
+}
+
+.historique-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-left-color: var(--color-white);
 }
 
 .historique-item-date {
-  font-size: 0.85rem;
-  color: var(--color-gray-dark);
-  margin-bottom: 5px;
+  font-size: 0.75rem;
+  color: var(--color-gray-medium);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 .historique-item-ac {
-  font-weight: bold;
-  color: var(--color-gray-darker);
-  margin-bottom: 5px;
+  font-weight: 700;
+  color: var(--color-white);
+  margin-bottom: 6px;
+  font-size: 1rem;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
 }
 
 .historique-item-progression {
   color: var(--color-stroke-default);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .historique-empty {
   text-align: center;
-  color: var(--color-gray-dark);
-  padding: 40px 20px;
+  color: var(--color-gray-medium);
+  padding: 60px 20px;
+  font-size: 0.9rem;
 }

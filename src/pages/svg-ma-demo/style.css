@@ -8,6 +8,15 @@
   box-sizing: border-box;
 }
 
+.header-actions {
+  position: fixed;
+  bottom: var(--spacing-lg);
+  right: var(--spacing-lg);
+  display: flex;
+  gap: var(--spacing-sm);
+  z-index: 100;
+}
+
 .svg-demo-title {
   font-size: 2rem;
   font-weight: bold;

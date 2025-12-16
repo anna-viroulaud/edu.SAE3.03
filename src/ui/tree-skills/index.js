@@ -11,12 +11,24 @@ import template from "./template.html?raw";
  * 
  * Pattern : Composant UI simple avec méthodes publiques claires
  */
+
 class TreeSkillsView {
-  constructor() {
+  /**
+   * @param {Object} levelColors - Table de correspondance niveau → couleur CSS (optionnel)
+   */
+  constructor(levelColors = null) {
     this.root = htmlToDOM(template);
     
-    // Table de correspondance : niveau → couleur CSS
-    this.LEVEL_COLORS = {
+    // Utiliser les couleurs fournies ou les couleurs par défaut
+    this.LEVEL_COLORS = levelColors || this.getDefaultLevelColors();
+  }
+
+  /**
+   * Retourne les couleurs par défaut si aucune n'est fournie
+   * @returns {Object} Table de correspondance niveau → couleur CSS
+   */
+  getDefaultLevelColors() {
+    return {
       // Comprendre (BUT1, BUT2, BUT3)
       '11': 'var(--color-comprendre-1)',
       '21': 'var(--color-comprendre-2)',
@@ -42,6 +54,13 @@ class TreeSkillsView {
       '25': 'var(--color-entreprendre-2)',
       '35': 'var(--color-entreprendre-3)',
     };
+  }
+
+  /**
+   * Retourne le template HTML (méthode standard des composants UI)
+   */
+  html() {
+    return template;
   }
 
   /**
@@ -118,10 +137,10 @@ class TreeSkillsView {
       const progression = progressions[acCode] || 0;
       
       // Déterminer la couleur du label
-      const labelColor = this._getLabelColor(acCode, progression);
+      const labelColor = this.getLabelColor(acCode, progression);
       
       // Créer ou mettre à jour le label
-      this._createACLabel(acElement, acCode, rect, labelColor);
+      this.createACLabel(acElement, acCode, rect, labelColor);
     });
   }
 
@@ -142,12 +161,12 @@ class TreeSkillsView {
     if (!rect) return;
 
     // 1. Mettre à jour le rectangle de progression
-    const levelColor = this._getLevelColor(acCode);
-    this._updateProgressRect(acElement, rect, progression, levelColor);
+    const levelColor = this.getLevelColor(acCode);
+    this.updateProgressRect(acElement, rect, progression, levelColor);
 
     // 2. Mettre à jour le label
-    const labelColor = this._getLabelColor(acCode, progression);
-    this._createACLabel(acElement, acCode, rect, labelColor);
+    const labelColor = this.getLabelColor(acCode, progression);
+    this.createACLabel(acElement, acCode, rect, labelColor);
   }
 
   /**
@@ -162,20 +181,20 @@ class TreeSkillsView {
     
     allLevels.forEach(levelElement => {
       // Trouver tous les AC de ce niveau
-      const levelACs = this._findACsForLevel(levelElement);
+      const levelACs = this.findACsForLevel(levelElement);
       if (levelACs.length === 0) return;
       
       // Calculer la progression moyenne
-      const averageProgression = this._calculateAverageProgression(levelACs, progressions);
+      const averageProgression = this.calculateAverageProgression(levelACs, progressions);
       
       // Récupérer la couleur du premier AC
       const firstACCode = levelACs[0].id;
-      const levelColor = this._getLevelColor(firstACCode);
+      const levelColor = this.getLevelColor(firstACCode);
       
       // Mettre à jour le cercle de progression
       const circle = levelElement.querySelector('circle, ellipse');
       if (circle) {
-        this._updateLevelCircle(levelElement, circle, averageProgression, levelColor);
+        this.updateLevelCircle(levelElement, circle, averageProgression, levelColor);
       }
     });
   }
@@ -185,7 +204,7 @@ class TreeSkillsView {
    * Récupère la couleur CSS d'un niveau à partir du code AC
    * Ex: "AC11.01" → extrait "11" → retourne 'var(--color-comprendre-1)'
    */
-  _getLevelColor(acCode) {
+  getLevelColor(acCode) {
     const levelCode = acCode.substring(2, 4); // "AC11.01" → "11"
     return this.LEVEL_COLORS[levelCode] || 'var(--color-stroke-default)';
   }
@@ -195,9 +214,9 @@ class TreeSkillsView {
    * - 0% → gris
    * - >0% → couleur du niveau
    */
-  _getLabelColor(acCode, progression) {
+  getLabelColor(acCode, progression) {
     if (progression > 0) {
-      return this._getLevelColor(acCode);
+      return this.getLevelColor(acCode);
     }
     return 'var(--color-stroke-default)'; // Gris par défaut
   }
@@ -206,7 +225,7 @@ class TreeSkillsView {
    * Convertit une variable CSS (ex: 'var(--color-comprendre-1)') en couleur hex
    * Nécessaire car SVG ne comprend pas les variables CSS dans setAttribute()
    */
-  _cssVarToHex(cssVar) {
+  cssVarToHex(cssVar) {
     if (!cssVar.startsWith('var(')) return cssVar;
     
     // Extraire le nom de la variable : 'var(--color-name)' → '--color-name'
@@ -226,7 +245,7 @@ class TreeSkillsView {
    * Crée ou met à jour le texte du code AC sous le rectangle
    * Ex: Affiche "AC11.01" en dessous du rectangle avec la bonne couleur
    */
-  _createACLabel(acElement, acCode, rect, color) {
+  createACLabel(acElement, acCode, rect, color) {
     // Chercher si le label existe déjà
     let label = acElement.querySelector('.ac-label');
     
@@ -251,7 +270,7 @@ class TreeSkillsView {
     }
     
     // Mettre à jour la couleur (conversion CSS var → hex)
-    const hexColor = this._cssVarToHex(color);
+    const hexColor = this.cssVarToHex(color);
     label.setAttribute('fill', hexColor);
   }
 
@@ -259,7 +278,7 @@ class TreeSkillsView {
    * Met à jour le rectangle de progression (remplissage coloré)
    * Crée un second rectangle par-dessus le premier avec une largeur proportionnelle
    */
-  _updateProgressRect(acElement, rect, progression, color) {
+  updateProgressRect(acElement, rect, progression, color) {
     // Récupérer ou créer le rectangle de progression
     let fillRect = acElement.querySelector('.progress-fill');
     
@@ -293,7 +312,7 @@ class TreeSkillsView {
    * Trouve tous les AC appartenant à un niveau (cercle)
    * Remonte dans le DOM jusqu'au groupe "niveau_X" parent
    */
-  _findACsForLevel(levelElement) {
+  findACsForLevel(levelElement) {
     // Remonter jusqu'au groupe parent "niveau_1", "niveau_2", etc.
     let niveauGroup = levelElement.parentElement;
     while (niveauGroup && !niveauGroup.id.startsWith('niveau_')) {
@@ -309,7 +328,7 @@ class TreeSkillsView {
   /**
    * Calcule la progression moyenne de plusieurs AC
    */
-  _calculateAverageProgression(acElements, progressions) {
+  calculateAverageProgression(acElements, progressions) {
     let total = 0;
     let count = 0;
     
@@ -327,7 +346,7 @@ class TreeSkillsView {
    * Met à jour le cercle de niveau avec un arc de progression
    * Utilise stroke-dasharray pour créer un arc proportionnel à la progression
    */
-  _updateLevelCircle(levelGroup, circle, progression, color) {
+  updateLevelCircle(levelGroup, circle, progression, color) {
     const isEllipse = circle.tagName === 'ellipse';
     
     // Récupérer ou créer le cercle de progression
