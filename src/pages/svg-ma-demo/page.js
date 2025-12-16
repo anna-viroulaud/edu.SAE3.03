@@ -215,6 +215,9 @@ V.init = function() {
     // Appliquer les progressions chargées depuis localStorage 
     V.applyStoredProgressions();
     
+    // Afficher tous les labels AC
+    V.treeSkills.showAllACLabels(M.progressions);
+    
     // Lancer l'animation d'entrée
     V.treeSkills.playEntryAnimation();
   }, 0);

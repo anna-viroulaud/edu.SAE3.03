@@ -1,4 +1,8 @@
-/* Tree Skills Component Styles */
+/* ═══════════════════════════════════════════════════════════
+   Tree Skills Component - Styles de l'arbre de compétences
+   ═══════════════════════════════════════════════════════════ */
+
+/* Container principal */
 .tree-skills-container {
   display: flex;
   justify-content: center;
@@ -16,7 +20,11 @@
   height: auto;
 }
 
-/* Couleurs des 5 compétences principales */
+/* ═══════════════════════════════════════════════════════════
+   Couleurs des 5 compétences principales
+   ═══════════════════════════════════════════════════════════ */
+
+/* Cercles de compétences */
 #Comprendre {
   fill: var(--color-comprendre-header);
   stroke: var(--color-comprendre-header);
@@ -40,4 +48,29 @@
 #Entreprendre {
   fill: var(--color-entreprendre-header);
   stroke: var(--color-entreprendre-header);
+}
+
+#COMPRENDRE { fill: var(--color-comprendre-header); }
+#CONCEVOIR { fill: var(--color-concevoir-header); }
+#EXPRIMER { fill: var(--color-exprimer-header); }
+#DEVELOPPER { fill: var(--color-developper-header); }
+#ENTREPRENDRE { fill: var(--color-entreprendre-header); }
+
+/* ═══════════════════════════════════════════════════════════
+   Labels AC (textes sous les rectangles)
+   ═══════════════════════════════════════════════════════════ */
+
+.ac-label {
+  font-size: 6px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  pointer-events: none;  /* Ne pas interférer avec les clics */
+  user-select: none;     /* Ne pas être sélectionnable */
+  opacity: 1;
+}
+
+/* Effet hover : rendre le texte plus gras */
+g[id^="AC"]:hover .ac-label {
+  font-weight: 700;
 }
