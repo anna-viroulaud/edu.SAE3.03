@@ -1,12 +1,12 @@
 .btn-historique {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #6E7275;
-  color: white;
+  bottom: var(--spacing-lg);
+  right: var(--spacing-lg);
+  background: var(--color-stroke-default);
+  color: var(--color-white);
   border: none;
-  padding: 12px 24px;
-  border-radius: 25px;
+  padding: var(--spacing-sm) var(--spacing-xl);
+  border-radius: var(--radius-lg);
   cursor: pointer;
   font-size: 1rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -15,7 +15,6 @@
 }
 
 .btn-historique:hover {
-  background: #5a5d5f;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0.8;
   transform: translateY(-2px);
 }

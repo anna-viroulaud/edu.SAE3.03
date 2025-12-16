@@ -91,13 +91,13 @@ class TreeSkillsView {
     const acElement = this.root.getElementById(acCode);
     if (!acElement) return;
 
-    // Map des couleurs par niveau
+    // Map des couleurs par niveau (utilise les variables CSS)
     const levelColors = {
-      '11': '#EE6E6E', '21': '#F13434', '31': '#FF2722',  // Comprendre
-      '12': '#FFA758', '22': '#F78B4A', '32': '#FF5F00',  // Concevoir
-      '13': '#E2D19B', '23': '#FFDA41', '33': '#EFBA11',  // Exprimer
-      '14': '#D8FFAE', '24': '#B7FF6B', '34': '#48D57C',  // Développer
-      '15': '#C8D8EF', '25': '#89ADD9', '35': '#19C8BA',  // Entreprendre
+      '11': 'var(--color-comprendre-1)', '21': 'var(--color-comprendre-2)', '31': 'var(--color-comprendre-3)',  // Comprendre
+      '12': 'var(--color-concevoir-1)', '22': 'var(--color-concevoir-2)', '32': 'var(--color-concevoir-3)',  // Concevoir
+      '13': 'var(--color-exprimer-1)', '23': 'var(--color-exprimer-2)', '33': 'var(--color-exprimer-3)',  // Exprimer
+      '14': 'var(--color-developper-1)', '24': 'var(--color-developper-2)', '34': 'var(--color-developper-3)',  // Développer
+      '15': 'var(--color-entreprendre-1)', '25': 'var(--color-entreprendre-2)', '35': 'var(--color-entreprendre-3)',  // Entreprendre
     };
 
     // Extraire le niveau (ex: AC11.01 -> "11")
@@ -148,61 +148,139 @@ class TreeSkillsView {
    * @param {Object} progressions - Objet {acCode: progression}
    */
   updateAllLevels(progressions) {
-    // Pour chaque AC avec progression, trouver et mettre à jour son cercle level
-    for (const acCode in progressions) {
-      if (progressions[acCode] <= 0) continue;
+    const allLevels = this.getAllLevels();
+    
+    allLevels.forEach(levelElement => {
+      // Trouver tous les AC de ce niveau
+      const levelACs = this._findACsForLevel(levelElement);
       
-      const acElement = this.root.getElementById(acCode);
-      if (!acElement) continue;
+      if (levelACs.length === 0) return;
       
-      const levelCircle = this._findLevelCircleForAC(acElement);
+      // Calculer la progression moyenne des AC de ce niveau
+      let totalProgression = 0;
+      let acCount = 0;
+      let firstACCode = null;
+      
+      levelACs.forEach(acElement => {
+        const acCode = acElement.id;
+        if (!firstACCode) firstACCode = acCode;
+        const progression = progressions[acCode] || 0;
+        totalProgression += progression;
+        acCount++;
+      });
+      
+      const averageProgression = acCount > 0 ? totalProgression / acCount : 0;
+      
+      // Déterminer la couleur selon le premier AC du niveau
+      const levelColor = this._getLevelColorFromAC(firstACCode);
+      
+      // Mettre à jour le cercle de niveau avec la progression moyenne
+      const levelCircle = levelElement.querySelector('circle, ellipse');
       if (levelCircle) {
-        this._setLevelActive(levelCircle);
+        this._updateLevelProgress(levelElement, levelCircle, averageProgression, levelColor);
       }
-    }
+    });
   }
 
   /**
-   * Trouve le cercle de niveau associé à un AC
-   * @param {Element} acElement - Élément AC du DOM
-   * @returns {Element|null} - Le cercle (circle ou ellipse) du niveau
+   * Récupère la couleur d'un niveau à partir d'un code AC
+   * @param {string} acCode - Code de l'AC (ex: "AC11.01")
+   * @returns {string} - Couleur hexadécimale
    * @private
    */
-  _findLevelCircleForAC(acElement) {
+  _getLevelColorFromAC(acCode) {
+    if (!acCode) return '#6E7275';
+    
+    const levelColors = {
+      '11': 'var(--color-comprendre-1)', '21': 'var(--color-comprendre-2)', '31': 'var(--color-comprendre-3)',  // Comprendre
+      '12': 'var(--color-concevoir-1)', '22': 'var(--color-concevoir-2)', '32': 'var(--color-concevoir-3)',  // Concevoir
+      '13': 'var(--color-exprimer-1)', '23': 'var(--color-exprimer-2)', '33': 'var(--color-exprimer-3)',  // Exprimer
+      '14': 'var(--color-developper-1)', '24': 'var(--color-developper-2)', '34': 'var(--color-developper-3)',  // Développer
+      '15': 'var(--color-entreprendre-1)', '25': 'var(--color-entreprendre-2)', '35': 'var(--color-entreprendre-3)',  // Entreprendre
+    };
+    
+    const levelCode = acCode.substring(2, 4);
+    return levelColors[levelCode] || '#6E7275';
+  }
+
+  /**
+   * Trouve tous les AC associés à un niveau
+   * @param {Element} levelElement - Élément level du DOM
+   * @returns {Array<Element>} - Liste des éléments AC
+   * @private
+   */
+  _findACsForLevel(levelElement) {
     // Remonter jusqu'au groupe "niveau_X" qui contient les AC et leur level
-    let niveauGroup = acElement.parentElement;
+    let niveauGroup = levelElement.parentElement;
     while (niveauGroup && !niveauGroup.id.startsWith('niveau_')) {
       niveauGroup = niveauGroup.parentElement;
     }
     
-    if (!niveauGroup) return null;
+    if (!niveauGroup) return [];
     
-    // Trouver le groupe level dans ce même groupe niveau
-    const levelGroup = niveauGroup.querySelector('g[id^="level_"]');
-    if (!levelGroup) return null;
-    
-    // Retourner le cercle ou ellipse
-    return levelGroup.querySelector('circle, ellipse');
+    // Retourner tous les groupes AC de ce niveau
+    return Array.from(niveauGroup.querySelectorAll('g[id^="AC"]'));
   }
 
   /**
-   * Active visuellement un cercle de niveau (stroke blanc)
-   * @param {Element} circle - Le cercle à activer
+   * Met à jour le cercle de progression d'un niveau
+   * @param {Element} levelGroup - Groupe contenant le level
+   * @param {Element} circle - Le cercle (circle ou ellipse)
+   * @param {number} progression - Progression de 0 à 100
+   * @param {string} color - Couleur de l'arc
    * @private
    */
-  _setLevelActive(circle) {
-    circle.setAttribute('stroke', '#FFFFFF');
-    circle.setAttribute('stroke-width', '3');
-  }
-
-  /**
-   * Désactive visuellement un cercle de niveau (stroke gris)
-   * @param {Element} circle - Le cercle à désactiver
-   * @private
-   */
-  _setLevelInactive(circle) {
-    circle.setAttribute('stroke', '#6E7275');
-    circle.setAttribute('stroke-width', '2.69903');
+  _updateLevelProgress(levelGroup, circle, progression, color) {
+    const isEllipse = circle.tagName === 'ellipse';
+    const strokeWidth = 4;
+    
+    // Vérifier si un cercle de progression existe déjà
+    let progressCircle = levelGroup.querySelector('.level-progress-circle');
+    
+    if (!progressCircle) {
+      // Créer un cercle/ellipse de progression identique
+      progressCircle = document.createElementNS('http://www.w3.org/2000/svg', circle.tagName);
+      progressCircle.classList.add('level-progress-circle');
+      
+      // Copier tous les attributs de position et taille
+      const cx = circle.getAttribute('cx');
+      const cy = circle.getAttribute('cy');
+      
+      progressCircle.setAttribute('cx', cx);
+      progressCircle.setAttribute('cy', cy);
+      
+      if (isEllipse) {
+        progressCircle.setAttribute('rx', circle.getAttribute('rx'));
+        progressCircle.setAttribute('ry', circle.getAttribute('ry'));
+      } else {
+        progressCircle.setAttribute('r', circle.getAttribute('r'));
+      }
+      
+      progressCircle.setAttribute('fill', 'none');
+      progressCircle.setAttribute('stroke-width', strokeWidth);
+      progressCircle.setAttribute('stroke-linecap', 'round');
+      progressCircle.setAttribute('transform', 'rotate(-90 ' + cx + ' ' + cy + ')');
+      
+      // Insérer après le cercle de base
+      circle.parentNode.insertBefore(progressCircle, circle.nextSibling);
+    }
+    
+    if (progression <= 0) {
+      progressCircle.setAttribute('stroke-dasharray', '0 9999');
+      return;
+    }
+    
+    // Calculer la circonférence
+    const rx = isEllipse ? parseFloat(circle.getAttribute('rx')) : parseFloat(circle.getAttribute('r'));
+    const ry = isEllipse ? parseFloat(circle.getAttribute('ry')) : parseFloat(circle.getAttribute('r'));
+    const circumference = Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)));
+    
+    // Calculer le dasharray pour la progression
+    const dashLength = (circumference * progression) / 100;
+    const gapLength = circumference - dashLength;
+    
+    progressCircle.setAttribute('stroke-dasharray', dashLength + ' ' + gapLength);
+    progressCircle.setAttribute('stroke', color);
   }
 }
 

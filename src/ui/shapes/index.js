@@ -27,14 +27,9 @@ class ShapesView {
     return this.root.querySelector('[data-name="octagon"]');
   }
 
-  getOctagon() {
-    return this.root.querySelector('[data-name="octagon"]');
-  }
-
   getName() {
     return this.root.getAttribute('data-name');
   }
-  
   
 }
 export { ShapesView };

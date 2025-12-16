@@ -1,12 +1,72 @@
+:root {
+  /* ========== Couleurs de Base ========== */
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-gray-light: #F5F5F5;
+  --color-gray-medium: #D0D0D0;
+  --color-gray-dark: #6E7275;
+  --color-gray-darker: #333333;
+  
+  /* ========== Compétence 1: Comprendre (Rouge) ========== */
+  --color-comprendre-1: #EE6E6E;  /* BUT1 - AC11.xx */
+  --color-comprendre-2: #F13434;  /* BUT2 - AC21.xx */
+  --color-comprendre-header: #FF2722;  /* Couleur du header Comprendre */
+  
+  /* ========== Compétence 2: Concevoir (Orange) ========== */
+  --color-concevoir-1: #FFA758;   /* BUT1 - AC12.xx */
+  --color-concevoir-2: #F78B4A;   /* BUT2 - AC22.xx */
+  --color-concevoir-3: #FF5F00;   /* BUT3 - AC32.xx */
+  --color-concevoir-header: #FB8036;  /* Couleur du header Concevoir */
+  
+  /* ========== Compétence 3: Exprimer (Jaune) ========== */
+  --color-exprimer-1: #E2D19B;    /* BUT1 - AC13.xx */
+  --color-exprimer-2: #FFDA41;    /* BUT2 - AC23.xx */
+  --color-exprimer-3: #EFBA11;    /* BUT3 - AC33.xx */
+  --color-exprimer-header: #EBBA14;  /* Couleur du header Exprimer */
+  
+  /* ========== Compétence 4: Développer (Vert) ========== */
+  --color-developper-1: #D8FFAE;  /* BUT1 - AC14.xx */
+  --color-developper-2: #B7FF6B;  /* BUT2 - AC24.xx */
+  --color-developper-3: #48D57C;  /* BUT3 - AC34.xx */
+  --color-developper-header: #48D57C;  /* Couleur du header Développer */
+  
+  /* ========== Compétence 5: Entreprendre (Bleu) ========== */
+  --color-entreprendre-1: #C8D8EF; /* BUT1 - AC15.xx */
+  --color-entreprendre-2: #89ADD9; /* BUT2 - AC25.xx */
+  --color-entreprendre-3: #19C8BA; /* BUT3 - AC35.xx */
+  --color-entreprendre-header: #1AC9BA;  /* Couleur du header Entreprendre */
+  
+  /* ========== Background ========== */
+  --color-bg-main: var(--color-black);
+  --color-bg-card: var(--color-white);
+  
+  /* ========== Bordures & Strokes ========== */
+  --color-border-default: var(--color-gray-medium);
+  --color-stroke-default: var(--color-gray-dark);
+  --color-stroke-active: var(--color-white);
+  
+  /* ========== Spacing (si besoin) ========== */
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 20px;
+  --spacing-xl: 25px;
+  
+  /* ========== Border Radius ========== */
+  --radius-sm: 15px;
+  --radius-md: 20px;
+  --radius-lg: 25px;
+}
+
 .root-layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   font-family: 'Segoe UI', 'Arial', sans-serif;
-  background-color: var(--color-fg);
+  background-color: var(--color-bg-main);
 }
 
 .root-main {
   flex: 1;
-  padding: 2rem;
+  padding: var(--spacing-lg);
 }

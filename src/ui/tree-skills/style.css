@@ -5,7 +5,7 @@
   align-items: center;
   width: 100%;
   height: 100vh;
-  padding: 20px;
+  padding: var(--spacing-lg);
   box-sizing: border-box;
 }
 
@@ -18,26 +18,26 @@
 
 /* Couleurs des 5 compétences principales */
 #Comprendre {
-  fill: #FF2722 ;
-  stroke: #FF2722 ;
+  fill: var(--color-comprendre-header);
+  stroke: var(--color-comprendre-header);
 }
 
 #Concevoir {
-  fill: #FB8036 ;
-  stroke: #FB8036 ;
+  fill: var(--color-concevoir-header);
+  stroke: var(--color-concevoir-header);
 }
 
 #Exprimer {
-  fill: #EBBA14 ;
-  stroke: #EBBA14 ;
+  fill: var(--color-exprimer-header);
+  stroke: var(--color-exprimer-header);
 }
 
 #Developper {
-  fill: #48D57C ;
-  stroke: #48D57C ;
+  fill: var(--color-developper-header);
+  stroke: var(--color-developper-header);
 }
 
 #Entreprendre {
-  fill: #1AC9BA ;
-  stroke: #1AC9BA ;
+  fill: var(--color-entreprendre-header);
+  stroke: var(--color-entreprendre-header);
 }

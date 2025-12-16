@@ -1,4 +1,4 @@
-import { htmlToDOM } from "../../lib/utils";
+import { htmlToDOM } from "../../lib/utils.js";
 import template from "./template.html?raw";
 
 let FooterView = {

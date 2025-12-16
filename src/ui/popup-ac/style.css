@@ -1,4 +1,4 @@
-/* Style minimaliste inspiré du SVG - Tons noir/gris */
+/* Style minimaliste popup AC */
 .popup-overlay {
     position: fixed;
     top: 0;
@@ -12,7 +12,7 @@
     align-items: flex-start;
     z-index: 1000;
     opacity: 0;
-    transition: all 0.3s ease;
+    transition: opacity 0.3s ease;
     pointer-events: none;
 }
 
@@ -23,21 +23,15 @@
 }
 
 .popup-content {
-    background: #000000;
-    border: 1.5px solid #6E7275;
-    border-radius: 8px;
-    padding: 0;
+    background: var(--color-black);
+    border: 1.5px solid var(--color-stroke-default);
+    border-radius: var(--spacing-xs);
     width: 300px;
-    max-width: 300px;
     max-height: 450px;
     overflow: hidden;
-    position: relative;
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(110, 114, 117, 0.3) inset;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     transform: translateX(100%);
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    pointer-events: auto;
     margin: 30px 30px 0 0;
 }
 
@@ -46,78 +40,70 @@
 }
 
 .popup-header {
-    padding: 20px;
-    background: #000000;
-    border-bottom: 1.5px solid #6E7275;
-    color: #FFFFFF;
-    text-align: left;
-    position: relative;
+    padding: var(--spacing-lg);
+    background: var(--color-black);
+    border-bottom: 1.5px solid var(--color-stroke-default);
+    color: var(--color-white);
 }
 
 .popup-code {
     font-size: 22px;
     font-weight: 700;
-    margin: 0 0 8px 0;
-    color: #FFFFFF;
+    margin: 0 0 var(--spacing-xs) 0;
+    color: var(--color-white);
     letter-spacing: 1px;
     font-family: 'Courier New', monospace;
 }
 
 .popup-description {
     font-size: 13px;
-    font-weight: 400;
-    color: #CCCCCC;
+    color: var(--color-gray-medium);
     line-height: 1.4;
-    margin: 0 0 12px 0;
+    margin: 0 0 var(--spacing-sm) 0;
 }
 
 .popup-badges {
     display: flex;
-    gap: 8px;
+    gap: var(--spacing-xs);
     flex-wrap: wrap;
 }
 
 .popup-badge {
-    display: inline-block;
     padding: 4px 12px;
     border-radius: 4px;
     font-size: 11px;
     font-weight: 600;
     background: transparent;
-    color: #FFFFFF;
-    border: 1px solid #6E7275;
+    color: var(--color-white);
+    border: 1px solid var(--color-stroke-default);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .popup-body {
-    padding: 20px;
+    padding: var(--spacing-lg);
     max-height: 300px;
     overflow-y: auto;
-    background: #000000;
+    background: var(--color-black);
 }
 
 .progression-section {
-    margin-bottom: 20px;
-    padding: 0;
-    background: transparent;
+    margin-bottom: var(--spacing-lg);
 }
 
 .progression-label {
-    display: block;
     font-size: 11px;
     font-weight: 600;
-    color: #6E7275;
-    margin-bottom: 12px;
+    color: var(--color-stroke-default);
+    margin-bottom: var(--spacing-sm);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
 .progress-container {
-    position: relative;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--spacing-sm);
 }
 
 .progress-slider {
@@ -126,11 +112,10 @@
     appearance: none;
     height: 4px;
     border-radius: 2px;
-    background: linear-gradient(to right, #6E7275 0%, #6E7275 50%, #1a1a1a 50%, #1a1a1a 100%);
+    background: linear-gradient(to right, var(--color-stroke-default) 0%, var(--color-stroke-default) 50%, var(--color-black) 50%, var(--color-black) 100%);
     outline: none;
     cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid #2a2a2a;
+    transition: height 0.2s ease;
 }
 
 .progress-slider:hover {
@@ -139,41 +124,32 @@
 
 .progress-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
-    appearance: none;
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: #6E7275;
+    background: var(--color-stroke-default);
     cursor: pointer;
-    border: 1px solid #444;
-    transition: all 0.2s ease;
+    border: 1px solid var(--color-gray-darker);
+    transition: transform 0.2s ease;
 }
 
 .progress-slider::-webkit-slider-thumb:hover {
     transform: scale(1.1);
-    background: #888;
-    border: 1px solid #6E7275;
 }
 
 .progress-slider::-moz-range-thumb {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background: #6E7275;
+    background: var(--color-stroke-default);
     cursor: pointer;
-    border: 1px solid #444;
-    transition: all 0.2s ease;
-}
-
-.progress-slider::-moz-range-thumb:hover {
-    transform: scale(1.1);
-    background: #888;
+    border: 1px solid var(--color-gray-darker);
 }
 
 .progress-value {
     font-size: 14px;
     font-weight: 600;
-    color: #FFFFFF;
+    color: var(--color-white);
     min-width: 50px;
     text-align: right;
     font-family: 'Courier New', monospace;
@@ -182,18 +158,16 @@
 .popup-actions {
     display: flex;
     gap: 10px;
-    justify-content: center;
 }
 
 .btn-validate,
 .btn-cancel {
     flex: 1;
-    max-width: 120px;
     padding: 10px 18px;
     border-radius: 4px;
     font-size: 12px;
     font-weight: 600;
-    border: 1.5px solid #6E7275;
+    border: 1.5px solid var(--color-stroke-default);
     cursor: pointer;
     transition: all 0.2s ease;
     text-transform: uppercase;
@@ -201,83 +175,35 @@
 }
 
 .btn-validate {
-    background: #6E7275;
-    color: #000000;
+    background: var(--color-stroke-default);
+    color: var(--color-black);
 }
 
 .btn-validate:hover {
-    background: #888;
-    border-color: #888;
-}
-
-.btn-validate:active {
-    transform: scale(0.98);
+    opacity: 0.8;
 }
 
 .btn-cancel {
     background: transparent;
-    color: #6E7275;
-    border: 1.5px solid #6E7275;
+    color: var(--color-stroke-default);
 }
 
 .btn-cancel:hover {
-    background: #1a1a1a;
-    border-color: #888;
-    color: #888;
+    background: var(--color-gray-darker);
 }
 
-.btn-cancel:active {
-    transform: scale(0.98);
-}
-
-/* Scrollbar personnalisée - Style minimaliste */
+/* Scrollbar */
 .popup-body::-webkit-scrollbar {
     width: 4px;
 }
 
 .popup-body::-webkit-scrollbar-track {
-    background: #1a1a1a;
+    background: var(--color-black);
 }
 
 .popup-body::-webkit-scrollbar-thumb {
-    background: #6E7275;
+    background: var(--color-stroke-default);
     border-radius: 2px;
-}
-
-.popup-body::-webkit-scrollbar-thumb:hover {
-    background: #888;
-}
-
-/* Animation d'entrée */
-@keyframes popupFadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9) translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%) scale(0.9);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0) scale(1);
-        opacity: 1;
-    }
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
 }
 
 /* Responsive */
@@ -285,88 +211,17 @@
     .popup-overlay {
         justify-content: center;
         align-items: center;
-        padding: 20px;
+        padding: var(--spacing-lg);
     }
 
     .popup-content {
         width: 100%;
         max-width: 320px;
-        transform: scale(0.9) translateY(50px);
         margin: 0;
+        transform: scale(0.9);
     }
 
     .popup-overlay.active .popup-content {
-        transform: scale(1) translateY(0);
+        transform: scale(1);
     }
-
-    .popup-header {
-        padding: 20px 20px 18px;
-    }
-
-    .popup-body {
-        padding: 20px;
-    }
-
-    .popup-code {
-        font-size: 24px;
-    }
-
-    .popup-description {
-        font-size: 13px;
-    }
-
-    .progression-section {
-        padding: 18px;
-    }
-
-    .popup-actions {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .btn-validate,
-    .btn-cancel {
-        max-width: 100%;
-    }
-}
-
-/* Animations supplémentaires */
-.popup-badge {
-    animation: slideInRight 0.5s ease forwards;
-}
-
-.popup-badge:nth-child(1) {
-    animation-delay: 0.1s;
-    opacity: 0;
-}
-
-.popup-badge:nth-child(2) {
-    animation-delay: 0.2s;
-    opacity: 0;
-}
-
-.popup-overlay.active .popup-badge {
-    opacity: 1;
-}
-
-/* Effet de brillance sur les boutons */
-.btn-validate::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s ease;
-}
-
-.btn-validate:hover::before {
-    left: 100%;
-}
-
-.btn-validate,
-.btn-cancel {
-    position: relative;
-    overflow: hidden;
 }
