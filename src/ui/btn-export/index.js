@@ -1,7 +1,7 @@
 import { htmlToDOM } from "../../lib/utils.js";
 import template from "./template.html?raw";
 import "./style.css";
-import { exporterSauvegarde } from "../../lib/profil.js";
+import { exporterSauvegarde } from "../../lib/historique.js";
 
 let BtnExportView = {
   html: function() {
