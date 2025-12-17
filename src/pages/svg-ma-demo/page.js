@@ -55,11 +55,13 @@ M.setACProgression = function(acCode, progression) {
 M.getACByCode = function(acCode) {
   return {
     code: acCode,
-    libelle: pn.getACLibelle(acCode),    
-    annee: pn.getACAnnee(acCode),        
-    competence: pn.getCompetenceNom(acCode) 
+    libelle: pn.getACLibelle(acCode),
+    annee: pn.getACAnnee(acCode),
+    competence: pn.getCompetenceNom(acCode),
+    progression: M.progressions[acCode] || 0
   };
 }
+
 
 
 
@@ -157,7 +159,8 @@ V.attachEvents = function(fragment) {
   V.popupHistorique.attachEvents();
   V.btnHistorique.onClick(C.handler_openHistorique);
   V.treeSkills.enableACInteractions(C.handler_clickOnAC);
-  
+  V.treeSkills.animateEntry();
+
   return fragment;
 }
 

@@ -1,6 +1,7 @@
 import { htmlToDOM } from "../../lib/utils.js";
 import template from "./template.html?raw";
 import "./style.css";
+import { Animation } from "../../lib/animation.js";
 
 /**
  * Composant UI popup-ac
@@ -28,7 +29,7 @@ class PopupACView {
   }
 
   /**
-   * Initialise le slider de progression
+   * Initialise le slider de progression avec animations
    */
   initSlider() {
     const slider = this.root.querySelector('#progressSlider');
@@ -44,9 +45,11 @@ class PopupACView {
       // Initialiser avec la valeur actuelle
       updateSlider(slider.value);
       
-      // Mettre à jour en temps réel
+      // Mettre à jour en temps réel avec animation pulse
       slider.addEventListener('input', (e) => {
         updateSlider(e.target.value);
+        // Petite animation pulse au déplacement
+        Animation.sliderPulse(slider);
       });
     }
   }
@@ -86,18 +89,28 @@ class PopupACView {
    * Attache les événements de fermeture et validation
    */
   attachEvents() {
-    // Bouton valider
-    const validateBtn = this.root.querySelector('#validateBtn');
-    if (validateBtn) {
-      validateBtn.addEventListener('click', () => {
-        const slider = this.root.querySelector('#progressSlider');
-        const progression = parseInt(slider.value);
-        
-        if (this.onValidate) {
-          this.onValidate(this.currentACCode, progression);
+  // 1. Bouton valider
+  const validateBtn = this.root.querySelector('#validateBtn');
+  if (validateBtn) {
+    validateBtn.addEventListener('click', () => {
+      const slider = this.root.querySelector('#progressSlider');
+      const progression = parseInt(slider.value);
+
+      try {
+        const svgId = this.currentACCode && this.currentACCode.replace('.', '-');
+        const acEl = document.getElementById(this.currentACCode) || document.getElementById(svgId);
+        if (acEl) {
+          Animation.popGlow(acEl, { color: '#5c1dd1ff', duration: 1 });
         }
-      });
-    }
+      } catch (err) {
+        // ignore
+      }
+
+      if (this.onValidate) {
+        this.onValidate(this.currentACCode, progression);
+      }
+    }); // Ferme addEventListener
+  }
     
     // Bouton fermer
     const closeBtn = this.root.querySelector('#closePopupBtn');

@@ -1,5 +1,7 @@
 import { htmlToDOM } from "../../lib/utils.js";
 import template from "./template.html?raw";
+import { Animation } from "../../lib/animation.js";
+import { gsap } from "gsap";
 
 /**
  * TreeSkillsView - Composant UI pour l'arbre de compétences
@@ -71,6 +73,31 @@ class TreeSkillsView {
   }
 
   /**
+   * Lance l'animation d'entrée de l'arbre (dessin progressif)
+   */
+  animateEntry() {
+    const svgRoot = this.root.querySelector('#skills_tree') || this.root;
+
+    // background stars
+    Animation.starrySky(svgRoot, { count: 80 });
+
+    // draw the tree (returns a timeline)
+    const tl = Animation.treeBuild(svgRoot, { duration: 1.0, stagger: 0.035 }) || null;
+
+    // subtle breath for the five central bubbles
+    const centers = ['Comprendre','Concevoir','Exprimer','Developper','Entreprendre']
+      .map(id => this.root.querySelector(`#${id}`))
+      .filter(Boolean);
+    if (centers.length) Animation.subtleBreath(centers, { minOpacity: 0.97, maxOpacity: 1.0, duration: 10 });
+
+    // occasional shooting stars (recursively scheduled)
+    const fire = () => { Animation.shootStar(svgRoot); gsap.delayedCall(Math.random() * 12 + 8, fire); };
+    gsap.delayedCall(4 + Math.random() * 3, fire);
+
+    return tl;
+  }
+
+  /**
    * Retourne tous les éléments AC du SVG
    */
   getAllACs() {
@@ -94,7 +121,18 @@ class TreeSkillsView {
     
     allACs.forEach(acElement => {
       acElement.style.cursor = 'pointer';
+
+      // Hover: add/remove a class to control opacity only (no scaling)
+      acElement.addEventListener('mouseenter', () => {
+        try { acElement.classList.add('ac-hover'); } catch (e) {}
+      });
+      acElement.addEventListener('mouseleave', () => {
+        try { acElement.classList.remove('ac-hover'); } catch (e) {}
+      });
+
+      // Click: ripple along connection and call external handler
       acElement.addEventListener('click', () => {
+        try { Animation.connectionRipple(acElement.id, { color: '#ffffffff' }); } catch (e) {}
         onACClick(acElement.id);
       });
     });
@@ -264,6 +302,8 @@ class TreeSkillsView {
       label.setAttribute('x', rectX + (rectWidth / 2));
       label.setAttribute('y', rectY + rectHeight + 8);
       label.setAttribute('text-anchor', 'middle');
+      // Enable SVG transforms on the label for hover effects
+      try { label.style.transformBox = 'fill-box'; label.style.transformOrigin = '50% 50%'; } catch (e) {}
       
       // Ajouter au groupe AC
       acElement.appendChild(label);
@@ -272,6 +312,9 @@ class TreeSkillsView {
     // Mettre à jour la couleur (conversion CSS var → hex)
     const hexColor = this.cssVarToHex(color);
     label.setAttribute('fill', hexColor);
+    // Make label more visible by default
+    label.setAttribute('opacity', '0.95');
+    label.style.fontSize = '7px';
   }
 
   /**
@@ -301,10 +344,10 @@ class TreeSkillsView {
     const rectWidth = parseFloat(rect.getAttribute('width'));
     const fillWidth = (rectWidth * progression) / 100;
     
-    // Appliquer
-    fillRect.setAttribute('width', fillWidth);
+    // Appliquer (mise à jour immédiate — animation via CSS si désirée)
     fillRect.setAttribute('fill', color);
     fillRect.setAttribute('stroke', color);
+    fillRect.setAttribute('width', String(fillWidth));
   }
 
 
@@ -385,18 +428,19 @@ class TreeSkillsView {
       return;
     }
     
-    // Calculer la circonférence (formule d'approximation pour ellipse)
-    const rx = isEllipse ? parseFloat(circle.getAttribute('rx')) : parseFloat(circle.getAttribute('r'));
-    const ry = isEllipse ? parseFloat(circle.getAttribute('ry')) : parseFloat(circle.getAttribute('r'));
-    const circumference = Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)));
-    
-    // Calculer la longueur de l'arc selon la progression
-    const arcLength = (circumference * progression) / 100;
-    const gapLength = circumference - arcLength;
-    
-    // Appliquer (dasharray = "longueur_trait longueur_espace")
-    progressCircle.setAttribute('stroke-dasharray', `${arcLength} ${gapLength}`);
+    // Appliquer couleur et animer l'arc via helper
     progressCircle.setAttribute('stroke', color);
+    try {
+      Animation.animateLevelArc(levelGroup, progression, 1.0);
+    } catch (e) {
+      // Fallback: appliquer directement
+      const rx = isEllipse ? parseFloat(circle.getAttribute('rx')) : parseFloat(circle.getAttribute('r'));
+      const ry = isEllipse ? parseFloat(circle.getAttribute('ry')) : parseFloat(circle.getAttribute('r'));
+      const circumference = Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)));
+      const arcLength = (circumference * progression) / 100;
+      const gapLength = circumference - arcLength;
+      progressCircle.setAttribute('stroke-dasharray', `${arcLength} ${gapLength}`);
+    }
   }
 }
 

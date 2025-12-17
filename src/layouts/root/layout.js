@@ -23,7 +23,18 @@ export function RootLayout() {
     let layout = htmlToDOM(template);
     let header = HeaderView.dom();
     let footer = FooterView.dom();
-    layout.querySelector('slot[name="header"]').replaceWith(header);
-    layout.querySelector('slot[name="footer"]').replaceWith(footer);
+    try {
+        const headerSlot = layout.querySelector('slot[name="header"]');
+        if (headerSlot) headerSlot.replaceWith(header);
+        else layout.insertBefore(header, layout.firstChild);
+
+        const footerSlot = layout.querySelector('slot[name="footer"]');
+        if (footerSlot) footerSlot.replaceWith(footer);
+        else layout.appendChild(footer);
+    } catch (e) {
+        // Fallback: ensure header/footer exist in layout
+        if (!layout.querySelector('header')) layout.insertBefore(header, layout.firstChild);
+        if (!layout.querySelector('footer')) layout.appendChild(footer);
+    }
     return layout;
 }
