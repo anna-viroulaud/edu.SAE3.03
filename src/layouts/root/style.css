@@ -58,15 +58,3 @@
   --radius-lg: 25px;
 }
 
-.root-layout {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  font-family: 'Segoe UI', 'Arial', sans-serif;
-  background-color: var(--color-bg-main);
-}
-
-.root-main {
-  flex: 1;
-  padding: var(--spacing-lg);
-}

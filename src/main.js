@@ -14,7 +14,7 @@ import { SvgMaDemoPage } from "./pages/svg-ma-demo/page.js";
 
 const router = new Router("app");
 
-router.addLayout("/", RootLayout);
+// router.addLayout("/", RootLayout);
 
 
 router.addRoute("/", SvgDemo1Page);

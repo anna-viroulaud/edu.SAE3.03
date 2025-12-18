@@ -28,3 +28,10 @@
   --color-danger: var(--color-red-500);
   
 }
+
+/* Appliquer un fond noir global et couleur de texte lisible */
+body {
+  background-color: var(--color-bg-main, #000);
+  color: var(--color-white, #fff);
+  margin: 0;
+}
