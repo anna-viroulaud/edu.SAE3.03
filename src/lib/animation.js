@@ -24,6 +24,28 @@ Animation.colorTransition = function (element, fromColor, toColor, duration = 1)
   );
 };
 
+Animation.drawLine = function (paths, fills, duration = 1) {
+  gsap
+    .timeline()
+    .from(paths, {
+      drawSVG: 0,
+      duration: duration,
+      ease: "power1.inOut",
+      stagger: 0.1,
+    })
+    .from(
+      fills,
+      {
+        opacity: 0,
+        scale: 1.5,
+        transformOrigin: "center center",
+        duration: 0.8,
+        ease: "elastic.out(2, 0.3)",
+      },
+      "-=1",
+    );
+};
+
 Animation.stretchElement = function (element, direction = "x", scale = 2, duration = 1) {
   const props = direction === "x" ? { scaleX: scale } : { scaleY: scale };
   gsap.to(element, { 
@@ -47,40 +69,8 @@ Animation.bounce = function (element, duration = 1, height = 100) {
   });
 };
 
-// --- ANIMATIONS COMPLEXES ---
 
-Animation.treeBuild = function (svgRoot, options = {}) {
-  if (!svgRoot || (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)) return null;
-  
-  const duration = options.duration || 1.0;
-  const stagger = options.stagger || 0.03;
-  const strokes = svgRoot.querySelectorAll('path, line, polyline');
-  const fills = svgRoot.querySelectorAll('rect, circle, ellipse, polygon');
-  const texts = svgRoot.querySelectorAll('text');
 
-  const tl = gsap.timeline();
-
-  if (strokes.length) {
-    try {
-      tl.from(strokes, { drawSVG: 0, duration: Math.max(0.6, duration), ease: 'power1.inOut', stagger });
-    } catch (err) {
-      tl.from(strokes, { opacity: 0, duration: Math.max(0.4, duration * 0.6), stagger });
-    }
-  }
-
-  if (fills.length) {
-    tl.from(fills, { 
-      opacity: 0, scale: 0.6, transformOrigin: 'center center', 
-      duration: 0.6, ease: 'back.out(1.4)', stagger: 0.02 
-    }, '-=0.15');
-  }
-
-  if (texts.length) {
-    tl.from(texts, { opacity: 0, y: 6, duration: 0.45, ease: 'power2.out', stagger: 0.02 }, '-=0.35');
-  }
-
-  return tl;
-};
 
 // --- EFFETS D'AMBIANCE ---
 
@@ -249,5 +239,119 @@ Animation.popGlow = function (element, options = {}) {
   } catch (e) { /* ignore */ }
   return tl;
 };
+
+Animation.treeBuild = function (svgRoot, options = {}) {
+  // Debug: journaliser l'appel et l'état reduced-motion
+  let reduced = false;
+  try {
+    reduced = (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  } catch (e) { /* ignore */ }
+
+  // Respecter reduced-motion par défaut ; permettre de forcer via options.force=true
+  const respectReducedMotion = options.respectReducedMotion !== undefined ? !!options.respectReducedMotion : true;
+  const force = options.force === true;
+
+  if (!svgRoot) {
+    return null;
+  }
+
+  if (reduced && respectReducedMotion && !force) {
+    return null;
+  }
+
+  const duration = options.duration || 1.0;
+  const stagger = options.stagger || 0.03;
+  const strokes = Array.from(svgRoot.querySelectorAll('path, line, polyline'));
+  const fills = Array.from(svgRoot.querySelectorAll('rect, circle, ellipse, polygon'));
+  const texts = Array.from(svgRoot.querySelectorAll('text'));
+
+  const tl = gsap.timeline();
+
+  // Helper : vérifier si un élément a un stroke visible
+  function hasVisibleStroke(el) {
+    try {
+      const attrStroke = el.getAttribute('stroke');
+      if (attrStroke && attrStroke !== 'none') return true;
+      const cs = window.getComputedStyle(el);
+      const cssStroke = cs?.getPropertyValue('stroke');
+      if (cssStroke && cssStroke !== 'none') return true;
+      const swAttr = el.getAttribute('stroke-width');
+      if (swAttr && parseFloat(swAttr) > 0) return true;
+      const sw = cs?.getPropertyValue('stroke-width');
+      if (sw && parseFloat(sw) > 0) return true;
+    } catch (e) { /* ignore */ }
+    return false;
+  }
+
+  // Partition des strokes en éléments tracés (strokable) et fallback
+  const strokable = [];
+  const fallback = [];
+  strokes.forEach(el => {
+    if (hasVisibleStroke(el)) strokable.push(el);
+    else fallback.push(el);
+  });
+
+  // 1) essayer DrawSVG sur les éléments ayant un stroke visible
+  if (strokable.length) {
+    if (typeof DrawSVGPlugin !== 'undefined') {
+      try {
+        tl.from(strokable, { drawSVG: 0, duration: Math.max(0.6, duration), ease: 'power1.inOut', stagger });
+      } catch (e) {
+        // si DrawSVG ne lance pas d'erreur mais n'affiche rien, on retombe sur le fallback ci-dessous
+        console.warn('DrawSVGPlugin failed in treeBuild:', e.message);
+        // fall through to fallback handling
+        strokable.forEach(el => fallback.push(el));
+      }
+    } else {
+      // pas de plugin — retomber sur fallback
+      strokable.forEach(el => fallback.push(el));
+    }
+  }
+
+  // 2) fallback : stroke-dasharray / stroke-dashoffset pour tous les éléments restants
+  if (fallback.length) {
+    const dashElems = [];
+    const opacityElems = [];
+
+    fallback.forEach(el => {
+      if (typeof el.getTotalLength === 'function') {
+        try {
+          const len = el.getTotalLength();
+          el.style.strokeDasharray = String(len);
+          el.style.strokeDashoffset = String(len);
+          dashElems.push({ el, len });
+        } catch (e) {
+          opacityElems.push(el);
+        }
+      } else {
+        opacityElems.push(el);
+      }
+    });
+
+    if (dashElems.length) {
+      tl.to(dashElems.map(d => d.el), { attr: { 'stroke-dashoffset': 0 }, duration: Math.max(0.6, duration), ease: 'power1.inOut', stagger });
+      tl.add(() => {
+        dashElems.forEach(d => { try { d.el.style.strokeDasharray = ''; d.el.style.strokeDashoffset = ''; } catch (e) {} });
+      });
+    }
+
+    if (opacityElems.length) {
+      tl.from(opacityElems, { opacity: 0, duration: Math.max(0.4, duration * 0.6), stagger });
+    }
+  }
+
+  // Fills
+  if (fills.length) {
+    tl.from(fills, { opacity: 0, scale: 0.6, transformOrigin: 'center center', duration: 0.6, ease: 'back.out(1.4)', stagger: 0.02 }, '-=0.15');
+  }
+
+  // Texts
+  if (texts.length) {
+    tl.from(texts, { opacity: 0, y: 6, duration: 0.45, ease: 'power2.out', stagger: 0.02 }, '-=0.35');
+  }
+
+  return tl;
+};
+
 
 export { Animation };

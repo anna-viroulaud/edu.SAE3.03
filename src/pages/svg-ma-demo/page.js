@@ -5,6 +5,8 @@ import { BtnHistoriqueView } from "@/ui/btn-historique";
 import { BtnExportView } from "@/ui/btn-export";
 import { chargerHistorique, sauvegarderLog, chargerProgressions, sauvegarderProgression } from "@/lib/historique.js";
 import { htmlToDOM } from "@/lib/utils.js";
+import { Animation } from "@/lib/animation.js";
+import { gsap } from "gsap";
 import template from "./template.html?raw";
 import { pn } from "@/data/pn.js";
 
@@ -101,6 +103,34 @@ C.handler_validateAC = function(acCode, progression) {
 }
 
 
+C.animateTreeEntry = function() {
+  const svgRoot = V.treeSkills.dom().querySelector('#skills_tree') || V.treeSkills.dom();
+
+  Animation.starrySky(svgRoot, { count: 80 });
+
+  // draw the tree (returns a timeline)
+  let tl = null;
+  try {
+    // force animation even if prefers-reduced-motion is active (useful for dev/testing)
+    tl = Animation.treeBuild(svgRoot, { duration: 1.0, stagger: 0.035, force: true }) || null;
+  } catch (err) {
+    console.error('[Page] Animation.treeBuild threw an error', err);
+  }
+
+  // subtle breath for the five central bubbles
+  const centers = ['Comprendre','Concevoir','Exprimer','Developper','Entreprendre']
+    .map(id => V.treeSkills.dom().querySelector(`#${id}`))
+    .filter(Boolean);
+  if (centers.length) Animation.subtleBreath(centers, { minOpacity: 0.97, maxOpacity: 1.0, duration: 10 });
+
+  // occasional shooting stars (recursively scheduled)
+  const fire = () => { Animation.shootStar(svgRoot); gsap.delayedCall(Math.random() * 12 + 8, fire); };
+  gsap.delayedCall(4 + Math.random() * 3, fire);
+
+  return tl;
+}
+
+
 // ========== VIEW ==========
 let V = {
   rootPage: null,
@@ -117,6 +147,15 @@ let V = {
 V.init = function() {
   let fragment = V.createPageFragment();
   V.attachEvents(fragment);
+  
+  // Lancer l'animation APRÈS que le DOM soit mis à jour
+  // requestAnimationFrame garantit que le SVG est bien dans le DOM
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      C.animateTreeEntry();
+    });
+  });
+  
   return fragment;
 }
 
@@ -159,7 +198,6 @@ V.attachEvents = function(fragment) {
   V.popupHistorique.attachEvents();
   V.btnHistorique.onClick(C.handler_openHistorique);
   V.treeSkills.enableACInteractions(C.handler_clickOnAC);
-  V.treeSkills.animateEntry();
 
   return fragment;
 }

@@ -1,7 +1,6 @@
 import { htmlToDOM } from "../../lib/utils.js";
 import template from "./template.html?raw";
 import { Animation } from "../../lib/animation.js";
-import { gsap } from "gsap";
 
 /**
  * TreeSkillsView - Composant UI pour l'arbre de compétences
@@ -73,31 +72,6 @@ class TreeSkillsView {
   }
 
   /**
-   * Lance l'animation d'entrée de l'arbre (dessin progressif)
-   */
-  animateEntry() {
-    const svgRoot = this.root.querySelector('#skills_tree') || this.root;
-
-    // background stars
-    Animation.starrySky(svgRoot, { count: 80 });
-
-    // draw the tree (returns a timeline)
-    const tl = Animation.treeBuild(svgRoot, { duration: 1.0, stagger: 0.035 }) || null;
-
-    // subtle breath for the five central bubbles
-    const centers = ['Comprendre','Concevoir','Exprimer','Developper','Entreprendre']
-      .map(id => this.root.querySelector(`#${id}`))
-      .filter(Boolean);
-    if (centers.length) Animation.subtleBreath(centers, { minOpacity: 0.97, maxOpacity: 1.0, duration: 10 });
-
-    // occasional shooting stars (recursively scheduled)
-    const fire = () => { Animation.shootStar(svgRoot); gsap.delayedCall(Math.random() * 12 + 8, fire); };
-    gsap.delayedCall(4 + Math.random() * 3, fire);
-
-    return tl;
-  }
-
-  /**
    * Retourne tous les éléments AC du SVG
    */
   getAllACs() {
@@ -134,22 +108,6 @@ class TreeSkillsView {
       acElement.addEventListener('click', () => {
         try { Animation.connectionRipple(acElement.id, { color: '#ffffffff' }); } catch (e) {}
         onACClick(acElement.id);
-      });
-    });
-  }
-
-  /**
-   * INTERACTIONS : Active les clics sur les niveaux (cercles)
-   * @param {Function} onLevelClick - Callback appelé avec l'ID du niveau
-   */
-  enableLevelInteractions(onLevelClick) {
-    const allLevels = this.getAllLevels();
-    
-    allLevels.forEach(levelElement => {
-      levelElement.style.cursor = 'pointer';
-      levelElement.addEventListener('click', (e) => {
-        e.stopPropagation(); // Empêche la propagation vers les AC
-        onLevelClick(levelElement.id);
       });
     });
   }
