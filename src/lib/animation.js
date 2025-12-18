@@ -241,116 +241,221 @@ Animation.popGlow = function (element, options = {}) {
 };
 
 Animation.treeBuild = function (svgRoot, options = {}) {
-  // Debug: journaliser l'appel et l'état reduced-motion
-  let reduced = false;
+  if (!svgRoot) return null;
   try {
-    reduced = (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
-  } catch (e) { /* ignore */ }
-
-  // Respecter reduced-motion par défaut ; permettre de forcer via options.force=true
-  const respectReducedMotion = options.respectReducedMotion !== undefined ? !!options.respectReducedMotion : true;
-  const force = options.force === true;
-
-  if (!svgRoot) {
-    return null;
-  }
-
-  if (reduced && respectReducedMotion && !force) {
-    return null;
-  }
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduced && !options.force) return null;
+  } catch (e) {}
 
   const duration = options.duration || 1.0;
   const stagger = options.stagger || 0.03;
-  const strokes = Array.from(svgRoot.querySelectorAll('path, line, polyline'));
-  const fills = Array.from(svgRoot.querySelectorAll('rect, circle, ellipse, polygon'));
-  const texts = Array.from(svgRoot.querySelectorAll('text'));
-
   const tl = gsap.timeline();
 
-  // Helper : vérifier si un élément a un stroke visible
-  function hasVisibleStroke(el) {
+  // Strokes avec DrawSVG ou fallback
+  const strokes = Array.from(svgRoot.querySelectorAll('path, line, polyline')).filter(el => {
     try {
-      const attrStroke = el.getAttribute('stroke');
-      if (attrStroke && attrStroke !== 'none') return true;
-      const cs = window.getComputedStyle(el);
-      const cssStroke = cs?.getPropertyValue('stroke');
-      if (cssStroke && cssStroke !== 'none') return true;
-      const swAttr = el.getAttribute('stroke-width');
-      if (swAttr && parseFloat(swAttr) > 0) return true;
-      const sw = cs?.getPropertyValue('stroke-width');
-      if (sw && parseFloat(sw) > 0) return true;
-    } catch (e) { /* ignore */ }
-    return false;
-  }
-
-  // Partition des strokes en éléments tracés (strokable) et fallback
-  const strokable = [];
-  const fallback = [];
-  strokes.forEach(el => {
-    if (hasVisibleStroke(el)) strokable.push(el);
-    else fallback.push(el);
+      const s = window.getComputedStyle(el).stroke;
+      return (el.getAttribute('stroke') !== 'none' && s !== 'none');
+    } catch (e) { return false; }
   });
 
-  // 1) essayer DrawSVG sur les éléments ayant un stroke visible
-  if (strokable.length) {
+  if (strokes.length) {
     if (typeof DrawSVGPlugin !== 'undefined') {
       try {
-        tl.from(strokable, { drawSVG: 0, duration: Math.max(0.6, duration), ease: 'power1.inOut', stagger });
+        tl.from(strokes, { drawSVG: 0, duration: Math.max(0.6, duration), ease: 'power1.inOut', stagger });
       } catch (e) {
-        // si DrawSVG ne lance pas d'erreur mais n'affiche rien, on retombe sur le fallback ci-dessous
-        console.warn('DrawSVGPlugin failed in treeBuild:', e.message);
-        // fall through to fallback handling
-        strokable.forEach(el => fallback.push(el));
+        tl.from(strokes, { opacity: 0, duration: Math.max(0.4, duration * 0.6), stagger });
       }
     } else {
-      // pas de plugin — retomber sur fallback
-      strokable.forEach(el => fallback.push(el));
-    }
-  }
-
-  // 2) fallback : stroke-dasharray / stroke-dashoffset pour tous les éléments restants
-  if (fallback.length) {
-    const dashElems = [];
-    const opacityElems = [];
-
-    fallback.forEach(el => {
-      if (typeof el.getTotalLength === 'function') {
-        try {
-          const len = el.getTotalLength();
-          el.style.strokeDasharray = String(len);
-          el.style.strokeDashoffset = String(len);
-          dashElems.push({ el, len });
-        } catch (e) {
-          opacityElems.push(el);
-        }
-      } else {
-        opacityElems.push(el);
-      }
-    });
-
-    if (dashElems.length) {
-      tl.to(dashElems.map(d => d.el), { attr: { 'stroke-dashoffset': 0 }, duration: Math.max(0.6, duration), ease: 'power1.inOut', stagger });
-      tl.add(() => {
-        dashElems.forEach(d => { try { d.el.style.strokeDasharray = ''; d.el.style.strokeDashoffset = ''; } catch (e) {} });
-      });
-    }
-
-    if (opacityElems.length) {
-      tl.from(opacityElems, { opacity: 0, duration: Math.max(0.4, duration * 0.6), stagger });
+      tl.from(strokes, { opacity: 0, duration: Math.max(0.4, duration * 0.6), stagger });
     }
   }
 
   // Fills
+  const fills = Array.from(svgRoot.querySelectorAll('rect, circle, ellipse, polygon'));
   if (fills.length) {
-    tl.from(fills, { opacity: 0, scale: 0.6, transformOrigin: 'center center', duration: 0.6, ease: 'back.out(1.4)', stagger: 0.02 }, '-=0.15');
+    tl.from(fills, { opacity: 0, scale: 0.6, transformOrigin: 'center', duration: 0.6, ease: 'back.out(1.4)', stagger: 0.02 }, '-=0.15');
   }
 
   // Texts
+  const texts = Array.from(svgRoot.querySelectorAll('text'));
   if (texts.length) {
     tl.from(texts, { opacity: 0, y: 6, duration: 0.45, ease: 'power2.out', stagger: 0.02 }, '-=0.35');
   }
 
   return tl;
+};
+
+// --- ANIMATION DE FLOTTEMENT POUR LES NIVEAUX ---
+
+/**
+ * Animation de flottement doux pour les groupes de niveaux
+ */
+Animation.floatLevels = function(svgRoot, options = {}) {
+  if (!svgRoot) return null;
+  
+  const levelGroups = Array.from(svgRoot.querySelectorAll('g[id^="level_"]'));
+  if (!levelGroups.length) return null;
+  
+  const amplitude = options.amplitude ?? 8;
+  const duration = options.duration ?? 4;
+  
+  levelGroups.forEach((group, i) => {
+    const delay = i * 0.3;
+    gsap.to(group, {
+      y: amplitude,
+      duration: duration / 2,
+      ease: 'sine.inOut',
+      yoyo: true,
+      repeat: -1,
+      delay: delay
+    });
+  });
+  
+  return levelGroups;
+};
+
+// --- ANIMATIONS D'IDLE (Quand le tree est statique) ---
+
+/**
+ * Animation de glow subtil sur les AC (pulsation légère de l'opacity)
+ */
+Animation.acGlowPulse = function(acElements, options = {}) {
+  const els = Array.from(acElements || []);
+  if (!els.length) return null;
+  
+  const duration = options.duration || 4;
+  const minOpacity = options.minOpacity ?? 0.7;
+  const maxOpacity = options.maxOpacity ?? 1.0;
+  const delayRange = options.delayRange || [0, 2];
+  
+  els.forEach((el, i) => {
+    const delay = gsap.utils.random(delayRange[0], delayRange[1]);
+    gsap.fromTo(el, 
+      { opacity: minOpacity },
+      { 
+        opacity: maxOpacity,
+        duration: duration / 2,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1,
+        delay: delay
+      }
+    );
+  });
+  
+  return els;
+};
+
+/**
+ * Animation des cercles de niveaux (micro-pulse avec scale)
+ */
+Animation.levelPulse = function(levelElements, options = {}) {
+  const els = Array.from(levelElements || []);
+  if (!els.length) return null;
+  
+  const duration = options.duration || 3;
+  const minScale = options.minScale ?? 0.98;
+  const maxScale = options.maxScale ?? 1.05;
+  const delayRange = options.delayRange || [0, 1.5];
+  
+  els.forEach((el, i) => {
+    const delay = gsap.utils.random(delayRange[0], delayRange[1]);
+    gsap.fromTo(el,
+      { scale: minScale },
+      {
+        scale: maxScale,
+        duration: duration / 2,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1,
+        delay: delay,
+        transformOrigin: '50% 50%'
+      }
+    );
+  });
+  
+  return els;
+};
+
+/**
+ * Animation d'ondulation sur les connecteurs (stroke opacity)
+ */
+Animation.connectionWave = function(pathElements, options = {}) {
+  const els = Array.from(pathElements || []);
+  if (!els.length) return null;
+  
+  const duration = options.duration || 3;
+  const minOpacity = options.minOpacity ?? 0.3;
+  const maxOpacity = options.maxOpacity ?? 0.7;
+  const delayRange = options.delayRange || [0, 2];
+  
+  els.forEach((el, i) => {
+    const delay = gsap.utils.random(delayRange[0], delayRange[1]);
+    gsap.fromTo(el,
+      { strokeOpacity: minOpacity },
+      {
+        strokeOpacity: maxOpacity,
+        duration: duration / 2,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1,
+        delay: delay
+      }
+    );
+  });
+  
+  return els;
+};
+
+/**
+ * Animation de rotation subtile sur une compétence (dégradé/gradient)
+ */
+Animation.competenceGradientRotate = function(competenceGroup, options = {}) {
+  if (!competenceGroup) return null;
+  
+  const duration = options.duration || 8;
+  const fillElement = competenceGroup.querySelector('[fill*="gradient"]') || competenceGroup.querySelector('circle');
+  
+  if (fillElement) {
+    gsap.to(fillElement, {
+      rotation: 360,
+      duration: duration,
+      repeat: -1,
+      ease: 'linear',
+      transformOrigin: '50% 50%'
+    });
+  }
+  
+  return fillElement;
+};
+
+/**
+ * Animation d'ensemble pour le tree au repos (applique plusieurs animations)
+ */
+Animation.idleTreeAnimation = function(svgRoot, options = {}) {
+  if (!svgRoot) return null;
+  
+  const acElements = svgRoot.querySelectorAll('g[id^="AC"]') || [];
+  const levelElements = svgRoot.querySelectorAll('g[id^="level_"]') || [];
+  const pathElements = svgRoot.querySelectorAll('path[class*="connection"]') || [];
+  const competenceCircles = svgRoot.querySelectorAll('#Comprendre, #Concevoir, #Exprimer, #Developper, #Entreprendre') || [];
+  
+  // Animation des AC
+  this.acGlowPulse(acElements, { duration: 4, minOpacity: 0.75, maxOpacity: 1.0 });
+  
+  // Animation des niveaux
+  this.levelPulse(levelElements, { duration: 3.5, minScale: 0.97, maxScale: 1.03 });
+  
+  // Animation des connecteurs
+  if (pathElements.length > 0) {
+    this.connectionWave(pathElements, { duration: 3, minOpacity: 0.4, maxOpacity: 0.8 });
+  }
+  
+  // Respiration des bulles principales (déjà faite dans treeBuild avec subtleBreath)
+  // On n'ajoute rien ici pour éviter les conflits
+  
+  return { acElements, levelElements, pathElements };
 };
 
 

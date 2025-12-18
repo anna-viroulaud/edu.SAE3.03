@@ -186,6 +186,9 @@ C.animateTreeEntry = function() {
     .filter(Boolean);
   if (centers.length) Animation.subtleBreath(centers, { minOpacity: 0.97, maxOpacity: 1.0, duration: 10 });
 
+  // Animation de flottement des niveaux
+  Animation.floatLevels(svgRoot, { amplitude: 6, duration: 5 });
+
   // lancer les shooting stars en boucle 
   const fire = () => { Animation.shootStar(svgRoot); gsap.delayedCall(Math.random() * 12 + 8, fire); };
   gsap.delayedCall(4 + Math.random() * 3, fire);
