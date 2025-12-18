@@ -1,76 +1,65 @@
-// Version très simple et légère de User (progress + history)
+import { pn } from "@/data/pn.js";
+
 class User {
-  constructor(storageKey = 'sae3.03.user') {
-    this.storageKey = storageKey;
-    this.data = { progress: {}, history: [] };
-    this.load();
+  constructor() {
+    this.USER_KEY = 'sae303_user_progress';
+    this.HISTORY_KEY = 'sae303_history';
+    this.data = this._load() || this._createEmpty();
+    this.history = this._loadHistory();
   }
 
-  load() {
-    try {
-      const raw = localStorage.getItem(this.storageKey);
-      if (!raw) return this.data;
-      this.data = JSON.parse(raw) || this.data;
-    } catch (e) {
-      this.data = { progress: {}, history: [] };
-    }
-    return this.data;
-  }
+  _createEmpty() { return { lastUpdate: new Date().toISOString(), progress: {} }; }
+  _load() { const raw = localStorage.getItem(this.USER_KEY); return raw ? JSON.parse(raw) : null; }
+  _loadHistory() { const raw = localStorage.getItem(this.HISTORY_KEY); if (!raw) return []; const h = JSON.parse(raw); h.sort((a,b)=> new Date(b.date)-new Date(a.date)); return h; }
 
-  save() {
-    try {
-      localStorage.setItem(this.storageKey, JSON.stringify(this.data));
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+  // Charge toutes les données (raw)
+  loadAll() { return this._load(); }
 
-  get(acCode) {
-    return this.data.progress[acCode] || 0;
-  }
-
-  set(acCode, value) {
-    if (!acCode) return false;
-    const v = Math.max(0, Math.min(100, Number(value) || 0));
-    const old = this.get(acCode);
-    if (old === v) return true;
+  // Sauvegarde la progression d'un AC (enregistre l'historique si la valeur change)
+  save(acCode, progress) {
+    if (!acCode) return;
+    const old = Number(this.data.progress?.[acCode] ?? 0);
+    const v = Number(progress) || 0;
     this.data.progress[acCode] = v;
-    this.data.history = this.data.history || [];
-    this.data.history.push({ date: new Date().toISOString(), ac: acCode, old, new: v });
-    return this.save();
+    this.data.lastUpdate = new Date().toISOString();
+    localStorage.setItem(this.USER_KEY, JSON.stringify(this.data));
+
+    // enregistrer l'historique si changement
+    if (old !== v) {
+      let label = acCode;
+      try { if (typeof pn.getAcLibelle === 'function') label = pn.getAcLibelle(acCode); } catch (e) {}
+      this.history.unshift({ date: new Date().toISOString(), ac: acCode, oldProgress: old, newProgress: v, label });
+      localStorage.setItem(this.HISTORY_KEY, JSON.stringify(this.history));
+    }
   }
 
-  getMap() { 
-    return Object.assign({}, this.data.progress || {}); 
- }
+  // Charge la map des progressions
+  loadProgressMap() { return this.data?.progress || {}; }
 
-  getHistory(limit = null) { 
-    const h = this.data.history || []; 
-    return limit ? h.slice(-limit) : Array.from(h); 
+  // Efface tout
+  clearAll() { this.data = this._createEmpty(); localStorage.removeItem(this.USER_KEY); }
+
+  // Historique
+  addHistory(acCode, oldProgress, newProgress) {
+    if (oldProgress === newProgress) return;
+    let label = acCode;
+    try { if (typeof pn.getAcLibelle === 'function') label = pn.getAcLibelle(acCode); } catch (e) {}
+    this.history.push({ date: new Date().toISOString(), ac: acCode, oldProgress, newProgress, label });
+    localStorage.setItem(this.HISTORY_KEY, JSON.stringify(this.history));
   }
 
-  export(filename = null) {
-    const blob = new Blob([JSON.stringify(this.data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename || `sae3.03-user-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  loadHistory() { return Array.from(this.history); }
 
-  clear() { 
-    this.data = { progress: {}, history: [] }; 
-    try 
-    { localStorage.removeItem(this.storageKey); 
+  getHistory() { return this.loadHistory(); }
 
-    } 
-    catch (e) {
-        
-    } }
+  // stats and export (small helpers)
+  getHistoryStats() { return { count: this.history.length, lastUpdate: this.history[0]?.date || null, size: new Blob([JSON.stringify(this.history)]).size }; }
+
+  exportHistory() { const blob = new Blob([JSON.stringify(this.history, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `sae303-historique-${new Date().toISOString().split('T')[0]}.json`; a.click(); URL.revokeObjectURL(url); }
+
+  clearHistory() { this.history = []; localStorage.removeItem(this.HISTORY_KEY); }
 }
 
 const user = new User();
-export { User, user };
+export { user, User };
 

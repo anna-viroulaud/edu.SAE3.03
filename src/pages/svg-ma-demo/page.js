@@ -15,7 +15,6 @@ import { pn } from "@/data/pn.js";
 let M = {
   data: null,
   progressions: {},
-  historique: [],
   
   // Table de correspondance : niveau → couleur CSS
   LEVEL_COLORS: {
@@ -32,9 +31,7 @@ let M = {
  */
 M.loadTreeData = async function() {
   M.data = pn;
-  // charger progressions depuis user
-  M.progressions = user.getMap();
-  M.historique = user.getHistory();
+  M.progressions = user.loadProgressMap();
 };
 
 M.getACProgression = function(acCode) {
@@ -42,9 +39,8 @@ M.getACProgression = function(acCode) {
 };
 
 M.setACProgression = function(acCode, progression) {
-  user.set(acCode, progression);
-  M.progressions = user.getMap();
-  M.historique = user.getHistory();
+  user.save(acCode, progression);    
+  M.progressions[acCode] = progression;
 };
 
 
@@ -79,7 +75,9 @@ C.init = async function() {
  * Gère l'ouverture de l'historique
  */
 C.handler_openHistorique = function() {
-  V.popupHistorique.open(M.historique);
+  // use the live user storage so the popup always shows the latest history
+  const hist = user.getHistory();
+  V.popupHistorique.open(hist);
 }
 
 /**

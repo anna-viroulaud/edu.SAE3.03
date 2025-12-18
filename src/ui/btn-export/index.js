@@ -13,7 +13,8 @@ let BtnExportView = {
     
     // Attacher l'événement click
     btnDOM.addEventListener("click", () => {
-      user.exportAll();
+      // Exporter l'historique (méthode existante)
+      user.exportHistory();
     });
     
     return btnDOM;
