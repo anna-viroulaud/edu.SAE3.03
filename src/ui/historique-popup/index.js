@@ -38,11 +38,13 @@ class HistoriquePopupView {
     for (let i = logs.length - 1; i >= 0; i--) {
       const log = logs[i];
       const date = new Date(log.date).toLocaleString('fr-FR');
+      // Compat: ancien format { progression } ou nouveau { new }
+      const progression = (typeof log.progression !== 'undefined') ? log.progression : (typeof log.new !== 'undefined' ? log.new : (typeof log.newProgress !== 'undefined' ? log.newProgress : 0));
       
       htmlString += genericRenderer(itemTemplate, {
         date: date,
         ac: log.ac,
-        progression: log.progression
+        progression: progression
       });
     }
     

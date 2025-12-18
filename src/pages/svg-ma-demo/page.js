@@ -3,7 +3,7 @@ import { PopupACView } from "@/ui/popup-ac";
 import { HistoriquePopupView } from "@/ui/historique-popup";
 import { BtnHistoriqueView } from "@/ui/btn-historique";
 import { BtnExportView } from "@/ui/btn-export";
-import { chargerHistorique, sauvegarderLog, chargerProgressions, sauvegarderProgression } from "@/lib/historique.js";
+import { user } from "@/data/user.js";
 import { htmlToDOM } from "@/lib/utils.js";
 import { Animation } from "@/lib/animation.js";
 import { gsap } from "gsap";
@@ -32,8 +32,9 @@ let M = {
  */
 M.loadTreeData = async function() {
   M.data = pn;
-  M.progressions = chargerProgressions();
-  M.historique = chargerHistorique();
+  // charger progressions depuis user
+  M.progressions = user.getMap();
+  M.historique = user.getHistory();
 };
 
 M.getACProgression = function(acCode) {
@@ -41,10 +42,9 @@ M.getACProgression = function(acCode) {
 };
 
 M.setACProgression = function(acCode, progression) {
-  M.progressions[acCode] = parseInt(progression);
-  sauvegarderProgression(M.progressions);
-  sauvegarderLog(acCode, progression);
-  M.historique = chargerHistorique();
+  user.set(acCode, progression);
+  M.progressions = user.getMap();
+  M.historique = user.getHistory();
 };
 
 
@@ -105,25 +105,20 @@ C.handler_validateAC = function(acCode, progression) {
 
 C.animateTreeEntry = function() {
   const svgRoot = V.treeSkills.dom().querySelector('#skills_tree') || V.treeSkills.dom();
+  if (!svgRoot) return null;
 
   Animation.starrySky(svgRoot, { count: 80 });
 
-  // draw the tree (returns a timeline)
-  let tl = null;
-  try {
-    // force animation even if prefers-reduced-motion is active (useful for dev/testing)
-    tl = Animation.treeBuild(svgRoot, { duration: 1.0, stagger: 0.035, force: true }) || null;
-  } catch (err) {
-    console.error('[Page] Animation.treeBuild threw an error', err);
-  }
+  // lancer l'animation d'arrivée (retourne une timeline ou null)
+  const tl = Animation.treeBuild(svgRoot, { duration: 1.0, stagger: 0.035, force: true }) || null;
 
-  // subtle breath for the five central bubbles
+  // subtle breath pour les 5 bulles centrales
   const centers = ['Comprendre','Concevoir','Exprimer','Developper','Entreprendre']
     .map(id => V.treeSkills.dom().querySelector(`#${id}`))
     .filter(Boolean);
   if (centers.length) Animation.subtleBreath(centers, { minOpacity: 0.97, maxOpacity: 1.0, duration: 10 });
 
-  // occasional shooting stars (recursively scheduled)
+  // lancer les shooting stars en boucle 
   const fire = () => { Animation.shootStar(svgRoot); gsap.delayedCall(Math.random() * 12 + 8, fire); };
   gsap.delayedCall(4 + Math.random() * 3, fire);
 

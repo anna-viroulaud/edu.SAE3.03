@@ -69,8 +69,10 @@ class PopupACView {
     const slider = this.root.querySelector('#progressSlider');
     const valueDisplay = this.root.querySelector('#progressValue');
     if (slider && valueDisplay) {
-      const progression = acData.progression || 0;
-      slider.value = progression;
+      // Coerce la progression en nombre et fallback à 0 si invalide
+      let progression = Number(acData.progression);
+      if (!Number.isFinite(progression)) progression = 0;
+      slider.value = String(progression);
       valueDisplay.textContent = progression + '%';
       slider.style.background = `linear-gradient(to right, #6E7275 0%, #6E7275 ${progression}%, #1a1a1a ${progression}%, #1a1a1a 100%)`;
     }

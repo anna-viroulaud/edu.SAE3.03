@@ -1,7 +1,7 @@
 import { htmlToDOM } from "../../lib/utils.js";
 import template from "./template.html?raw";
 import "./style.css";
-import { exporterSauvegarde } from "../../lib/historique.js";
+import { user } from "@/data/user.js";
 
 let BtnExportView = {
   html: function() {
@@ -13,7 +13,7 @@ let BtnExportView = {
     
     // Attacher l'événement click
     btnDOM.addEventListener("click", () => {
-      exporterSauvegarde();
+      user.exportAll();
     });
     
     return btnDOM;
