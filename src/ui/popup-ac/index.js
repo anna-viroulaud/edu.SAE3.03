@@ -34,6 +34,7 @@ class PopupACView {
   initSlider() {
     const slider = this.root.querySelector('#progressSlider');
     const valueDisplay = this.root.querySelector('#progressValue');
+    const proofSection = this.root.querySelector('#proofSection');
     
     if (slider && valueDisplay) {
       // Fonction pour mettre à jour le gradient et le texte
@@ -47,7 +48,22 @@ class PopupACView {
       
       // Mettre à jour en temps réel avec animation pulse
       slider.addEventListener('input', (e) => {
-        updateSlider(e.target.value);
+        const value = Number(e.target.value);
+        updateSlider(value);
+        
+        // Activer/désactiver le champ preuve selon la progression
+        const proofInput = this.root.querySelector('#proofInput');
+        const proofLabel = this.root.querySelector('.proof-label');
+        if (value > 1) {
+          if (proofInput) proofInput.disabled = false;
+          if (proofSection) proofSection.classList.remove('disabled');
+          if (proofLabel) proofLabel.textContent = 'AJOUTER UNE PREUVE (URL OU TEXTE) :';
+        } else {
+          if (proofInput) proofInput.disabled = true;
+          if (proofSection) proofSection.classList.add('disabled');
+          if (proofLabel) proofLabel.textContent = 'PREUVE (disponible à partir de 2%)';
+        }
+        
         // Petite animation pulse au déplacement
         Animation.sliderPulse(slider);
       });
@@ -68,6 +84,9 @@ class PopupACView {
     // Initialiser le slider avec la progression existante
     const slider = this.root.querySelector('#progressSlider');
     const valueDisplay = this.root.querySelector('#progressValue');
+    const proofSection = this.root.querySelector('#proofSection');
+    const proofInput = this.root.querySelector('#proofInput');
+    
     if (slider && valueDisplay) {
       // Coerce la progression en nombre et fallback à 0 si invalide
       let progression = Number(acData.progression);
@@ -75,6 +94,23 @@ class PopupACView {
       slider.value = String(progression);
       valueDisplay.textContent = progression + '%';
       slider.style.background = `linear-gradient(to right, #6E7275 0%, #6E7275 ${progression}%, #1a1a1a ${progression}%, #1a1a1a 100%)`;
+      
+      // Activer/désactiver le champ preuve selon la progression
+      const proofLabel = this.root.querySelector('.proof-label');
+      if (progression > 0) {
+        if (proofInput) proofInput.disabled = false;
+        if (proofSection) proofSection.classList.remove('disabled');
+        if (proofLabel) proofLabel.textContent = 'AJOUTER UNE PREUVE (URL OU TEXTE) :';
+      } else {
+        if (proofInput) proofInput.disabled = true;
+        if (proofSection) proofSection.classList.add('disabled');
+        if (proofLabel) proofLabel.textContent = 'PREUVE (disponible à partir de 1%)';
+      }
+      
+      // Préremplir le champ preuve si elle existe
+      if (proofInput) {
+        proofInput.value = acData.proof || '';
+      }
     }
     
     this.root.classList.add('active');
@@ -97,6 +133,8 @@ class PopupACView {
     validateBtn.addEventListener('click', () => {
       const slider = this.root.querySelector('#progressSlider');
       const progression = parseInt(slider.value);
+      const proofInput = this.root.querySelector('#proofInput');
+      const proof = proofInput ? proofInput.value.trim() : '';
 
       try {
         const svgId = this.currentACCode && this.currentACCode.replace('.', '-');
@@ -109,7 +147,7 @@ class PopupACView {
       }
 
       if (this.onValidate) {
-        this.onValidate(this.currentACCode, progression);
+        this.onValidate(this.currentACCode, progression, proof);
       }
     }); // Ferme addEventListener
   }

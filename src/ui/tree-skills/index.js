@@ -163,7 +163,48 @@ class TreeSkillsView {
     // 2. Mettre à jour le label
     const labelColor = this.getLabelColor(acCode, progression);
     this.createACLabel(acElement, acCode, rect, labelColor);
+      // proof indicator (caller should call setProofIndicator separately when needed)
   }
+
+    /**
+     * Ajoute ou retire un indicateur visuel lorsque l'AC possède une preuve
+     * @param {string} acCode
+     * @param {string|null} proof
+     */
+    setProofIndicator(acCode, proof) {
+      const acElement = this.root.getElementById(acCode);
+      if (!acElement) return;
+
+      // retirer indicateur existant
+      const existing = acElement.querySelector('.proof-indicator');
+      if (existing) existing.remove();
+
+      if (!proof) return; // rien à ajouter
+
+      // Créer un petit cercle en haut à droite du rect (si rect disponible)
+      const rect = acElement.querySelector('rect');
+      let cx = 0, cy = 0;
+      if (rect) {
+        const x = parseFloat(rect.getAttribute('x')) || 0;
+        const y = parseFloat(rect.getAttribute('y')) || 0;
+        const w = parseFloat(rect.getAttribute('width')) || 0;
+        cx = x + w - 6;
+        cy = y + 6;
+      } else {
+        cx = 0; cy = 0;
+      }
+
+      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      c.classList.add('proof-indicator');
+      c.setAttribute('cx', String(cx));
+      c.setAttribute('cy', String(cy));
+      c.setAttribute('r', '4');
+      c.setAttribute('fill', '#ffffffff');
+      c.setAttribute('stroke', '#ffffff');
+      c.setAttribute('stroke-width', '0.8');
+
+      acElement.appendChild(c);
+    }
 
   /**
    * MISE À JOUR : Met à jour tous les cercles de niveau selon les progressions

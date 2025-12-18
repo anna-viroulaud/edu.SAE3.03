@@ -91,6 +91,69 @@
     margin-bottom: var(--spacing-lg);
 }
 
+/* Section preuve */
+.proof-section {
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    padding-right: 40px;
+    background: var(--color-gray-darker);
+    border-radius: 4px;
+    border: 1px solid var(--color-stroke-default);
+    transition: opacity 0.2s ease;
+}
+
+.proof-section.disabled {
+    opacity: 0.5;
+}
+
+.proof-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-stroke-default);
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: color 0.2s ease;
+}
+
+.proof-section.disabled .proof-label {
+    color: var(--color-gray-dark);
+}
+
+#proofInput {
+    width: 100%;
+    padding: var(--spacing-sm);
+    background: var(--color-black);
+    border: 1px solid var(--color-stroke-default);
+    border-radius: 4px;
+    color: var(--color-white);
+    font-size: 12px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+    transition: border-color 0.2s ease, opacity 0.2s ease;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+#proofInput:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--color-gray-darker);
+}
+
+#proofInput:focus {
+    outline: none;
+    border-color: var(--color-white);
+}
+
+#proofInput::placeholder {
+    color: var(--color-gray-medium);
+    opacity: 0.6;
+}
+
 .progression-label {
     font-size: 11px;
     font-weight: 600;

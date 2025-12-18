@@ -1,10 +1,18 @@
 <div>
   <div class="header-actions">
+    <slot name="btn-toggle-view"></slot>
     <slot name="btn-export"></slot>
     <slot name="btn-historique"></slot>
   </div>
   <section class="svg-demo-container">
-    <slot name="svg"></slot>
+    <div class="view-wrapper" data-current-view="tree">
+      <div class="tree-view">
+        <slot name="svg"></slot>
+      </div>
+      <div class="radar-view">
+        <slot name="radar"></slot>
+      </div>
+    </div>
   </section>
   <!-- section pour les deux popup a afficher en slot dynamique -->
   <section class="popup-section">

@@ -1,0 +1,99 @@
+.btn-toggle-view {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 999;
+    
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    
+    padding: var(--spacing-sm) var(--spacing-xl);
+    background: var(--color-black);
+    border: 1.5px solid var(--color-stroke-default);
+    border-radius: var(--spacing-xs);
+    
+    color: var(--color-white);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
+    
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.btn-toggle-view:hover {
+    background: var(--color-stroke-default);
+    border-color: var(--color-white);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(110, 114, 117, 0.3);
+}
+
+.btn-toggle-view:active {
+    transform: translateY(0);
+}
+
+.btn-toggle-view svg {
+    width: 20px;
+    height: 20px;
+    transition: all 0.3s ease;
+}
+
+/* Par défaut, afficher l'icône arbre et cacher le radar */
+.btn-toggle-view .icon-tree {
+    display: none;
+}
+
+.btn-toggle-view .icon-radar {
+    display: block;
+}
+
+/* Quand le bouton est en mode radar (data-view="radar"), inverser */
+.btn-toggle-view[data-view="radar"] .icon-tree {
+    display: block;
+}
+
+.btn-toggle-view[data-view="radar"] .icon-radar {
+    display: none;
+}
+
+/* Animation de rotation au changement */
+.btn-toggle-view.switching svg {
+    animation: rotate-icon 0.5s ease;
+}
+
+@keyframes rotate-icon {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+    50% {
+        transform: rotate(180deg) scale(1.2);
+    }
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .btn-toggle-view {
+        top: 10px;
+        right: 10px;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 12px;
+    }
+    
+    .btn-toggle-view svg {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .btn-text {
+        display: none;
+    }
+}

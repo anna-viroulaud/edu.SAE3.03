@@ -1,11 +1,66 @@
 .svg-demo-container {
   max-width: 100%;
+  width: 100%;
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   margin: 0 auto;
   padding: 2rem;
   box-sizing: border-box;
+  position: relative;
+}
+
+.view-wrapper {
+  width: 100%;
+  min-height: 80vh;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tree-view,
+.radar-view {
+  width: 100%;
+  min-height: 80vh;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Par défaut, afficher la vue arbre */
+.view-wrapper[data-current-view="tree"] .tree-view {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: all;
+  z-index: 1;
+}
+
+.view-wrapper[data-current-view="tree"] .radar-view {
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Quand on passe en vue radar */
+.view-wrapper[data-current-view="radar"] .tree-view {
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.view-wrapper[data-current-view="radar"] .radar-view {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: all;
+  z-index: 1;
 }
 
 .header-actions {

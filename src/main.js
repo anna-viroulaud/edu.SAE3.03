@@ -17,7 +17,7 @@ const router = new Router("app");
 // router.addLayout("/", RootLayout);
 
 
-router.addRoute("/", SvgDemo1Page);
+
 router.addRoute("/svg-demo1", SvgDemo1Page);
 
 router.addRoute("/svg-demo2", SvgDemo2Page);
@@ -28,7 +28,7 @@ router.addRoute("/svg-demo4", SvgDemo4Page);
 
 router.addRoute("/svg-demo5", SvgDemo5Page);
 
-router.addRoute("/svg-ma-demo", SvgMaDemoPage);
+router.addRoute("/", SvgMaDemoPage);
 
 router.addRoute("*", The404Page);
 

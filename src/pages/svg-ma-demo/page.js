@@ -3,6 +3,8 @@ import { PopupACView } from "@/ui/popup-ac";
 import { HistoriquePopupView } from "@/ui/historique-popup";
 import { BtnHistoriqueView } from "@/ui/btn-historique";
 import { BtnExportView } from "@/ui/btn-export";
+import { RadarView } from "@/ui/radar-view";
+import { BtnToggleView } from "@/ui/btn-toggle-view";
 import { user } from "@/data/user.js";
 import { htmlToDOM } from "@/lib/utils.js";
 import { Animation } from "@/lib/animation.js";
@@ -15,6 +17,7 @@ import { pn } from "@/data/pn.js";
 let M = {
   data: null,
   progressions: {},
+  proofs: {},
   
   // Table de correspondance : niveau → couleur CSS
   LEVEL_COLORS: {
@@ -32,6 +35,7 @@ let M = {
 M.loadTreeData = async function() {
   M.data = pn;
   M.progressions = user.loadProgressMap();
+  M.proofs = user.loadProofMap();
 };
 
 M.getACProgression = function(acCode) {
@@ -56,8 +60,45 @@ M.getACByCode = function(acCode) {
     libelle: pn.getACLibelle(acCode),
     annee: pn.getACAnnee(acCode),
     competence: pn.getCompetenceNom(acCode),
-    progression: M.progressions[acCode] || 0
+    progression: M.progressions[acCode] || 0,
+    proof: M.proofs[acCode] || ''
   };
+}
+
+/**
+ * Calcule la moyenne de progression par compétence
+ * @returns {Object} Objet avec les moyennes par compétence
+ * Exemple: { "Comprendre": 45, "Concevoir": 60, "Exprimer": 30, "Développer": 75, "Entreprendre": 20 }
+ */
+M.getCompetenceAverages = function() {
+  const competences = {
+    'Comprendre': { sum: 0, count: 0 },
+    'Concevoir': { sum: 0, count: 0 },
+    'Exprimer': { sum: 0, count: 0 },
+    'Développer': { sum: 0, count: 0 },
+    'Entreprendre': { sum: 0, count: 0 }
+  };
+  
+  // Parcourir toutes les compétences (1-5)
+  for (let skillIndex = 1; skillIndex <= 5; skillIndex++) {
+    const acs = pn.getAllACsForSkill(skillIndex);
+    const competenceName = pn[skillIndex - 1].nom_court;
+    
+    acs.forEach(acCode => {
+      const progression = M.progressions[acCode] || 0;
+      competences[competenceName].sum += progression;
+      competences[competenceName].count++;
+    });
+  }
+  
+  // Calculer les moyennes
+  const averages = {};
+  Object.keys(competences).forEach(comp => {
+    const { sum, count } = competences[comp];
+    averages[comp] = count > 0 ? sum / count : 0;
+  });
+  
+  return averages;
 }
 
 
@@ -93,11 +134,40 @@ C.handler_clickOnAC = function(acCode) {
 /**
  * Gère la validation de la progression d'un AC
  */
-C.handler_validateAC = function(acCode, progression) {
+C.handler_validateAC = function(acCode, progression, proof) {
   M.setACProgression(acCode, progression);
+  
+  // Sauvegarder la preuve si fournie
+  if (proof !== undefined) {
+    user.saveProof(acCode, proof);
+    M.proofs[acCode] = proof;
+    V.treeSkills.setProofIndicator(acCode, proof);
+  }
+  
   V.treeSkills.updateACVisual(acCode, progression);
   V.treeSkills.updateAllLevels(M.progressions);
+  
+  // Mettre à jour le radar si actif
+  const averages = M.getCompetenceAverages();
+  V.radarView.update(averages);
+  
   V.popupAC.close();
+}
+
+/**
+ * Gère le changement de vue (arbre <-> radar)
+ */
+C.handler_toggleView = function(newView) {
+  const wrapper = V.rootPage.querySelector('.view-wrapper');
+  if (wrapper) {
+    wrapper.setAttribute('data-current-view', newView);
+  }
+  
+  // Si on passe en vue radar, mettre à jour les données
+  if (newView === 'radar') {
+    const averages = M.getCompetenceAverages();
+    V.radarView.update(averages);
+  }
 }
 
 
@@ -128,10 +198,12 @@ C.animateTreeEntry = function() {
 let V = {
   rootPage: null,
   treeSkills: null,
+  radarView: null,
   popupAC: null,
   popupHistorique: null,
   btnHistorique: null,
-  btnExport: null
+  btnExport: null,
+  btnToggleView: null
 };
 
 /**
@@ -160,19 +232,27 @@ V.createPageFragment = function() {
   
   // Créer le composant TreeSkills avec les couleurs du Model
   V.treeSkills = new TreeSkillsView(M.LEVEL_COLORS);
+  V.radarView = new RadarView();
   V.popupAC = new PopupACView();
   V.popupHistorique = new HistoriquePopupView();
   V.btnHistorique = new BtnHistoriqueView();
   V.btnExport = BtnExportView.dom();
+  V.btnToggleView = new BtnToggleView();
 
   V.rootPage.querySelector('slot[name="svg"]').replaceWith(V.treeSkills.dom());
+  V.rootPage.querySelector('slot[name="radar"]').replaceWith(V.radarView.dom());
   V.rootPage.querySelector('slot[name="popup-ac"]').replaceWith(V.popupAC.dom());
   V.rootPage.querySelector('slot[name="btn-export"]').replaceWith(V.btnExport);
+  V.rootPage.querySelector('slot[name="btn-toggle-view"]').replaceWith(V.btnToggleView.dom());
   
   // Injecter le bouton historique dans le slot
   V.rootPage.querySelector('slot[name="btn-historique"]').replaceWith(V.btnHistorique.dom());
   
   document.body.appendChild(V.popupHistorique.dom());
+  
+  // Initialiser le radar avec les données actuelles
+  const averages = M.getCompetenceAverages();
+  V.radarView.init(averages);
   
   // Appliquer les progressions chargées depuis localStorage 
   V.applyStoredProgressions();
@@ -191,6 +271,9 @@ V.attachEvents = function(fragment) {
   V.popupHistorique.attachEvents();
   V.btnHistorique.onClick(C.handler_openHistorique);
   V.treeSkills.enableACInteractions(C.handler_clickOnAC);
+  
+  // Attacher l'événement du bouton toggle
+  V.btnToggleView.setOnClick(C.handler_toggleView);
 
   return fragment;
 }
@@ -204,6 +287,14 @@ V.applyStoredProgressions = function() {
         V.treeSkills.updateACVisual(acCode, M.progressions[acCode]);
       }
     }
+    
+    // Appliquer les indicateurs de preuve pour les AC qui en ont
+    for (const acCode in M.proofs) {
+      if (M.proofs[acCode]) {
+        V.treeSkills.setProofIndicator(acCode, M.proofs[acCode]);
+      }
+    }
+    
     V.treeSkills.updateAllLevels(M.progressions);
     V.treeSkills.showAllACLabels(M.progressions);  // ✅ Combiné ici
 }

@@ -1,0 +1,42 @@
+<div class="radar-container">
+    <div class="radar-header">
+        <h2 class="radar-title">Vue Synthétique des Compétences</h2>
+        <p class="radar-subtitle">Progression moyenne par compétence</p>
+    </div>
+    
+    <div class="radar-chart-wrapper">
+        <svg id="radarChart" viewBox="0 0 600 600" class="radar-svg">
+            <!-- Grille de fond -->
+            <g class="radar-grid"></g>
+            
+            <!-- Labels des compétences -->
+            <g class="radar-labels"></g>
+            
+            <!-- Polygone de données -->
+            <g class="radar-data"></g>
+        </svg>
+    </div>
+    
+    <div class="radar-legend">
+        <div class="legend-item">
+            <span class="legend-color c1"></span>
+            <span class="legend-text" id="legend-c1">Comprendre : 0%</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color c2"></span>
+            <span class="legend-text" id="legend-c2">Concevoir : 0%</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color c3"></span>
+            <span class="legend-text" id="legend-c3">Exprimer : 0%</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color c4"></span>
+            <span class="legend-text" id="legend-c4">Développer : 0%</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color c5"></span>
+            <span class="legend-text" id="legend-c5">Entreprendre : 0%</span>
+        </div>
+    </div>
+</div>

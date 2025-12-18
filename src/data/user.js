@@ -8,7 +8,7 @@ class User {
     this.history = this._loadHistory();
   }
 
-  _createEmpty() { return { lastUpdate: new Date().toISOString(), progress: {} }; }
+  _createEmpty() { return { lastUpdate: new Date().toISOString(), progress: {}, proofs: {} }; }
   _load() { const raw = localStorage.getItem(this.USER_KEY); return raw ? JSON.parse(raw) : null; }
   _loadHistory() { const raw = localStorage.getItem(this.HISTORY_KEY); if (!raw) return []; const h = JSON.parse(raw); h.sort((a,b)=> new Date(b.date)-new Date(a.date)); return h; }
 
@@ -36,6 +36,25 @@ class User {
   // Charge la map des progressions
   loadProgressMap() { return this.data?.progress || {}; }
 
+  // Sauvegarde une preuve (texte ou URL) associée à un AC
+  saveProof(acCode, proof) {
+    if (!acCode) return;
+    if (!this.data.proofs) this.data.proofs = {};
+    
+    if (typeof proof === 'undefined' || proof === null || String(proof).trim() === '') {
+      // Supprimer si vide
+      delete this.data.proofs[acCode];
+    } else {
+      this.data.proofs[acCode] = String(proof).trim();
+    }
+    
+    this.data.lastUpdate = new Date().toISOString();
+    localStorage.setItem(this.USER_KEY, JSON.stringify(this.data));
+  }
+
+  // Charge la map des preuves
+  loadProofMap() { return this.data?.proofs || {}; }
+
   // Efface tout
   clearAll() { this.data = this._createEmpty(); localStorage.removeItem(this.USER_KEY); }
 
@@ -56,6 +75,23 @@ class User {
   getHistoryStats() { return { count: this.history.length, lastUpdate: this.history[0]?.date || null, size: new Blob([JSON.stringify(this.history)]).size }; }
 
   exportHistory() { const blob = new Blob([JSON.stringify(this.history, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `sae303-historique-${new Date().toISOString().split('T')[0]}.json`; a.click(); URL.revokeObjectURL(url); }
+
+  // Export de l'état complet (progress + proofs + history)
+  exportState() {
+    const payload = {
+      lastUpdate: this.data.lastUpdate,
+      progress: this.data.progress || {},
+      proofs: this.data.proofs || {},
+      history: this.history || []
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sae303-etat-complet-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   clearHistory() { this.history = []; localStorage.removeItem(this.HISTORY_KEY); }
 }
