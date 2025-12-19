@@ -1,7 +1,7 @@
 import { htmlToDOM } from "../../lib/utils.js";
 import template from "./template.html?raw";
 import "./style.css";
-import { gsap } from "gsap";
+import { Animation } from "../../lib/animation.js";
 
 /**
  * RadarView - Composant UI pour la vue radar des compétences
@@ -249,30 +249,10 @@ class RadarView {
   }
 
   /**
-   * Animation d'entrée du radar
+   * Animation d'entrée du radar (utilise Animation.radarEntry)
    */
   animateEntry() {
-    const polygon = this.root.querySelector('.radar-data polygon');
-    const circles = this.root.querySelectorAll('.radar-data circle');
-    
-    if (polygon) {
-      gsap.from(polygon, {
-        scale: 0,
-        transformOrigin: 'center',
-        duration: 0.8,
-        ease: 'back.out(1.7)'
-      });
-    }
-    
-    circles.forEach((circle, i) => {
-      gsap.from(circle, {
-        scale: 0,
-        transformOrigin: 'center',
-        duration: 0.5,
-        delay: 0.2 + i * 0.1,
-        ease: 'back.out(1.7)'
-      });
-    });
+    return Animation.radarEntry(this.root);
   }
 }
 

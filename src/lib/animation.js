@@ -414,71 +414,200 @@ Animation.idleTreeAnimation = function(svgRoot, options = {}) {
 // --- ANIMATIONS DE COMPLÉTION (LEVEL / COMPETENCE) ---
 
 /**
- * Animation de célébration pour un niveau complété : pop + couronne + étincelles
+ * Helper : Obtenir les coordonnées du centre d'un élément SVG
  */
-Animation.levelCompletionCrown = function(levelElement, options = {}) {
-  if (!levelElement) return null;
-  const ns = 'http://www.w3.org/2000/svg';
-  const duration = options.duration || 1.8;
-
-  const svg = levelElement.closest('svg') || document.querySelector('svg');
-  if (!svg) return null;
-
-  // trouver la bulle (circle/ellipse) ou fallback bbox. If getBBox fails, use DOM rect -> SVG coords fallback.
-  let cx = 0, cy = 0, r = options.radius || 30;
+Animation._getSVGCenter = function(element, svg) {
   try {
-    const bubble = levelElement.querySelector('circle, ellipse') || levelElement;
-    const bb = bubble.getBBox();
-    cx = bb.x + bb.width / 2;
-    cy = bb.y + bb.height / 2;
-    r = Math.max(12, Math.min(bb.width, bb.height) / 2);
+    const bb = element.getBBox();
+    return { 
+      cx: bb.x + bb.width / 2, 
+      cy: bb.y + bb.height / 2, 
+      r: Math.max(12, Math.min(bb.width, bb.height) / 2) 
+    };
   } catch (e) {
-    // Fallback: compute center using getBoundingClientRect and svg viewBox scaling
     try {
       const svgRect = svg.getBoundingClientRect();
-      const lvlRect = levelElement.getBoundingClientRect();
-      const vb = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : { width: svg.clientWidth, height: svg.clientHeight };
+      const elRect = element.getBoundingClientRect();
+      const vb = svg.viewBox?.baseVal || { width: svg.clientWidth, height: svg.clientHeight };
       const scaleX = vb.width / svgRect.width;
       const scaleY = vb.height / svgRect.height;
-      cx = (lvlRect.left - svgRect.left + lvlRect.width / 2) * scaleX;
-      cy = (lvlRect.top - svgRect.top + lvlRect.height / 2) * scaleY;
-      r = options.radius || Math.max(12, Math.min(lvlRect.width, lvlRect.height) / 2) * Math.max(scaleX, scaleY);
+      return {
+        cx: (elRect.left - svgRect.left + elRect.width / 2) * scaleX,
+        cy: (elRect.top - svgRect.top + elRect.height / 2) * scaleY,
+        r: Math.max(12, Math.min(elRect.width, elRect.height) / 2) * Math.max(scaleX, scaleY)
+      };
     } catch (e2) {
       return null;
     }
   }
+};
 
-  // pop du niveau
-  try { levelElement.style.transformBox = 'fill-box'; levelElement.style.transformOrigin = '50% 50%'; } catch(e){}
-  gsap.fromTo(levelElement, { scale: 1 }, { scale: 1.12, duration: 0.18, ease: 'power2.out', yoyo: true, repeat: 1 });
+/**
+ * Helper : Créer des étincelles SVG
+ */
+Animation._createSparks = function(svg, cx, cy, count = 10) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const sparks = document.createElementNS(ns, 'g');
+  sparks.style.pointerEvents = 'none';
+  svg.appendChild(sparks);
+  
+  for (let i = 0; i < count; i++) {
+    const particle = document.createElementNS(ns, 'circle');
+    particle.setAttribute('r', gsap.utils.random(1.5, 4));
+    particle.setAttribute('cx', cx);
+    particle.setAttribute('cy', cy);
+    particle.setAttribute('fill', '#FFFFFF');
+    sparks.appendChild(particle);
+    
+    gsap.to(particle, { 
+      attr: { 
+        cx: cx + gsap.utils.random(-80, 80), 
+        cy: cy + gsap.utils.random(-80, 80) 
+      }, 
+      opacity: 0, 
+      duration: gsap.utils.random(0.9, 1.6), 
+      ease: 'power2.out', 
+      onComplete: () => particle.remove() 
+    });
+  }
+  
+  gsap.delayedCall(1.6, () => sparks.remove());
+  return sparks;
+};
 
-  // couronne glow
-  const crown = document.createElementNS(ns, 'g'); crown.style.pointerEvents = 'none'; svg.appendChild(crown);
-  const glow = document.createElementNS(ns, 'circle'); glow.setAttribute('cx', cx); glow.setAttribute('cy', cy); glow.setAttribute('r', r + 12); glow.setAttribute('fill', 'none'); glow.setAttribute('stroke', '#FFFFFF'); glow.setAttribute('stroke-width', '3'); glow.style.filter = 'drop-shadow(0 0 16px #FFFFFF)'; crown.appendChild(glow);
-  const ring = document.createElementNS(ns, 'circle'); ring.setAttribute('cx', cx); ring.setAttribute('cy', cy); ring.setAttribute('r', r + 28); ring.setAttribute('fill', 'none'); ring.setAttribute('stroke', '#9CFFDF'); ring.setAttribute('stroke-width', '2'); crown.appendChild(ring);
-
-  const tl = gsap.timeline({ onComplete: () => { try { crown.remove(); } catch(e){} } });
-  tl.to(glow, { attr: { r: r + 34 }, duration: duration * 0.5, ease: 'power2.out' }, 0);
-  tl.to(ring, { rotation: 360, transformOrigin: `${cx} ${cy}`, duration: duration * 1.1, ease: 'linear' }, 0);
-  tl.to(crown, { opacity: 0, duration: duration * 0.5, delay: duration * 0.4, ease: 'power2.out' }, 0);
-
-  // quelques étincelles autour
-  try {
-    const sparks = document.createElementNS(ns, 'g'); sparks.style.pointerEvents='none'; svg.appendChild(sparks);
-    for (let i=0;i<10;i++){
-      const p = document.createElementNS(ns,'circle'); const pr = gsap.utils.random(1.5,4);
-      p.setAttribute('r', pr); p.setAttribute('cx', cx); p.setAttribute('cy', cy); p.setAttribute('fill', '#FFFFFF'); sparks.appendChild(p);
-      gsap.to(p, { attr: { cx: cx + gsap.utils.random(-80,80), cy: cy + gsap.utils.random(-80,80) }, opacity: 0, duration: gsap.utils.random(0.9,1.6), ease:'power2.out', onComplete: ()=>p.remove() });
-    }
-    gsap.delayedCall(1.6, ()=>{ try { sparks.remove(); } catch(e){} });
-  } catch(e){}
-
+/**
+ * Animation de célébration pour un niveau complété : explosion depuis le cercle central
+ */
+Animation.levelCompletionCrown = function(levelElement, options = {}) {
+  if (!levelElement) return null;
+  
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = levelElement.closest('svg') || document.querySelector('svg');
+  if (!svg) return null;
+  
+  const bubble = levelElement.querySelector('circle, ellipse') || levelElement;
+  const coords = this._getSVGCenter(bubble, svg);
+  if (!coords) return null;
+  
+  const { cx, cy, r } = coords;
+  const duration = options.duration || 1.5;
+  
+  // Pop du niveau
+  gsap.fromTo(levelElement, { scale: 1 }, { 
+    scale: 1.12, duration: 0.2, ease: 'power2.out', yoyo: true, repeat: 1 
+  });
+  
+  const crown = document.createElementNS(ns, 'g');
+  crown.style.pointerEvents = 'none';
+  svg.appendChild(crown);
+  
+  // Onde de choc blanche
+  const wave = document.createElementNS(ns, 'circle');
+  wave.setAttribute('cx', cx);
+  wave.setAttribute('cy', cy);
+  wave.setAttribute('r', r);
+  wave.setAttribute('fill', 'none');
+  wave.setAttribute('stroke', '#FFFFFF');
+  wave.setAttribute('stroke-width', '3');
+  wave.style.filter = 'blur(2px)';
+  crown.appendChild(wave);
+  
+  // Animation
+  gsap.to(wave, { attr: { r: r + 70 }, opacity: 0, duration: duration * 0.5, ease: 'power2.out' });
+  
+  // Particules radiales
+  for (let i = 0; i < 12; i++) {
+    const angle = (Math.PI * 2 / 12) * i;
+    const p = document.createElementNS(ns, 'circle');
+    p.setAttribute('cx', cx);
+    p.setAttribute('cy', cy);
+    p.setAttribute('r', 3);
+    p.setAttribute('fill', '#9CFFDF');
+    crown.appendChild(p);
+    
+    gsap.to(p, {
+      attr: { 
+        cx: cx + Math.cos(angle) * 80, 
+        cy: cy + Math.sin(angle) * 80 
+      },
+      opacity: 0,
+      duration: duration,
+      ease: 'power2.out',
+      onComplete: () => p.remove()
+    });
+  }
+  
+  gsap.delayedCall(duration, () => crown.remove());
   return crown;
+};
+
+/**
+ * Animation de feu pour un AC complété (100%)
+ */
+Animation.acFireEffect = function(acElement, options = {}) {
+  if (!acElement) return null;
+  
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = acElement.closest('svg') || document.querySelector('svg');
+  if (!svg) return null;
+  
+  const coords = this._getSVGCenter(acElement, svg);
+  if (!coords) return null;
+  
+  const { cx, cy, r } = coords;
+  const duration = options.duration || 2;
+  const flameColors = ['#FF6B35', '#F7931E', '#FDC830', '#FF4E50', '#FC913A'];
+  
+  // Créer le groupe de flammes
+  const flames = document.createElementNS(ns, 'g');
+  flames.style.pointerEvents = 'none';
+  svg.appendChild(flames);
+  
+  // Créer 15-20 particules de feu
+  const particleCount = gsap.utils.random(15, 20, 1);
+  
+  for (let i = 0; i < particleCount; i++) {
+    const flame = document.createElementNS(ns, 'circle');
+    const size = gsap.utils.random(2, 6);
+    const angle = gsap.utils.random(0, Math.PI * 2);
+    const distance = gsap.utils.random(5, 25);
+    
+    flame.setAttribute('cx', cx + Math.cos(angle) * distance);
+    flame.setAttribute('cy', cy + Math.sin(angle) * distance);
+    flame.setAttribute('r', size);
+    flame.setAttribute('fill', flameColors[Math.floor(Math.random() * flameColors.length)]);
+    flame.style.filter = `blur(${gsap.utils.random(0.5, 2)}px)`;
+    flames.appendChild(flame);
+    
+    // Animation de montée et disparition
+    gsap.to(flame, {
+      attr: { 
+        cy: cy - gsap.utils.random(40, 80),
+        r: size * 0.3
+      },
+      opacity: 0,
+      duration: gsap.utils.random(0.8, duration),
+      ease: 'power2.out',
+      delay: gsap.utils.random(0, 0.3),
+      onComplete: () => flame.remove()
+    });
+  }
+  
+  // Pop de l'AC
+  gsap.fromTo(acElement, 
+    { scale: 1 }, 
+    { scale: 1.15, duration: 0.2, ease: 'power2.out', yoyo: true, repeat: 1 }
+  );
+  
+  // Nettoyer le groupe après l'animation
+  gsap.delayedCall(duration + 0.5, () => flames.remove());
+  
+  return flames;
 };
 
 
 /**
- * Grand feu d'artifice pour compétence complète (gros, multi-burst)
+ * Grand feu d'artifice pour compétence complète (style réaliste avec traînées)
  */
 Animation.competitionCompletionFireworks = function(svgRoot, options = {}) {
   if (!svgRoot) return null;
@@ -486,27 +615,149 @@ Animation.competitionCompletionFireworks = function(svgRoot, options = {}) {
   const vb = svgRoot.viewBox?.baseVal || { width: svgRoot.clientWidth || 1000, height: svgRoot.clientHeight || 700 };
   const duration = options.duration || 3.2;
   const bursts = options.bursts || 4;
-  const perBurst = options.perBurst || 80;
-  const colors = options.colors || ['#FF2722','#FB8036','#EBBA14','#48D57C','#1AC9BA','#FFFFFF'];
+  const linesPerBurst = options.linesPerBurst || 30;
+  const colors = options.colors || ['#FF2722', '#FB8036', '#EBBA14', '#48D57C', '#1AC9BA', '#FFFFFF'];
 
-  const master = document.createElementNS(ns,'g'); master.style.pointerEvents='none'; svgRoot.insertBefore(master, svgRoot.firstElementChild);
+  const master = document.createElementNS(ns, 'g');
+  master.style.pointerEvents = 'none';
+  svgRoot.insertBefore(master, svgRoot.firstElementChild);
 
-  const createBurst = (cx,cy,count) => {
-    const g = document.createElementNS(ns,'g'); master.appendChild(g);
-    for (let i=0;i<count;i++){
-      const angle = gsap.utils.random(0,Math.PI*2); const speed = gsap.utils.random(140,640);
-      const tx = Math.cos(angle)*speed; const ty = Math.sin(angle)*speed;
-      const c = document.createElementNS(ns,'circle'); c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r', gsap.utils.random(2,7)); const fill = colors[Math.floor(Math.random()*colors.length)]; c.setAttribute('fill', fill); c.style.filter = `drop-shadow(0 0 ${gsap.utils.random(6,20)}px ${fill})`; g.appendChild(c);
-      gsap.timeline().to(c, { attr:{ cx: cx+tx*0.55, cy: cy+ty*0.55 }, duration: gsap.utils.random(0.28,0.8), ease:'power3.out' }).to(c, { attr:{ cx: cx+tx, cy: cy+ty+gsap.utils.random(80,300) }, opacity:0, duration: gsap.utils.random(duration*0.8,duration*1.2), ease:'power2.in', onComplete: ()=>c.remove() }, '>-0.02');
+  // Créer un burst avec des lignes qui partent du centre (comme l'image)
+  const createBurst = (cx, cy) => {
+    const g = document.createElementNS(ns, 'g');
+    master.appendChild(g);
+    
+    // Flash initial
+    const flash = document.createElementNS(ns, 'circle');
+    flash.setAttribute('cx', cx);
+    flash.setAttribute('cy', cy);
+    flash.setAttribute('r', 8);
+    flash.setAttribute('fill', '#FFD700');
+    flash.style.filter = 'blur(3px) drop-shadow(0 0 30px #FFD700)';
+    g.appendChild(flash);
+    
+    gsap.to(flash, {
+      attr: { r: gsap.utils.random(80, 140) },
+      opacity: 0,
+      duration: 0.8,
+      ease: 'power2.out',
+      onComplete: () => flash.remove()
+    });
+    
+    // Créer les traînées lumineuses (lignes)
+    for (let i = 0; i < linesPerBurst; i++) {
+      const angle = gsap.utils.random(0, Math.PI * 2);
+      const distance = gsap.utils.random(180, 350);
+      const endX = cx + Math.cos(angle) * distance;
+      const endY = cy + Math.sin(angle) * distance;
+      
+      // Ligne principale
+      const line = document.createElementNS(ns, 'line');
+      line.setAttribute('x1', cx);
+      line.setAttribute('y1', cy);
+      line.setAttribute('x2', cx);
+      line.setAttribute('y2', cy);
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      line.setAttribute('stroke', color);
+      line.setAttribute('stroke-width', gsap.utils.random(1.5, 3));
+      line.setAttribute('stroke-linecap', 'round');
+      line.style.filter = `blur(${gsap.utils.random(0.5, 1.5)}px) drop-shadow(0 0 ${gsap.utils.random(4, 12)}px ${color})`;
+      g.appendChild(line);
+      
+      // Animation de la traînée
+      const lineDuration = gsap.utils.random(0.6, 1.2);
+      gsap.to(line, {
+        attr: { x2: endX, y2: endY },
+        duration: lineDuration,
+        ease: 'power2.out',
+        onComplete: () => {
+          // Faire disparaître la ligne
+          gsap.to(line, {
+            opacity: 0,
+            duration: 0.4,
+            onComplete: () => line.remove()
+          });
+        }
+      });
+      
+      // Petites particules au bout de certaines lignes
+      if (Math.random() > 0.7) {
+        gsap.delayedCall(lineDuration * 0.8, () => {
+          const sparkCount = gsap.utils.random(3, 8, 1);
+          for (let j = 0; j < sparkCount; j++) {
+            const spark = document.createElementNS(ns, 'circle');
+            spark.setAttribute('cx', endX);
+            spark.setAttribute('cy', endY);
+            spark.setAttribute('r', gsap.utils.random(1, 3));
+            spark.setAttribute('fill', color);
+            g.appendChild(spark);
+            
+            const sparkAngle = angle + gsap.utils.random(-0.5, 0.5);
+            const sparkDist = gsap.utils.random(20, 60);
+            
+            gsap.to(spark, {
+              attr: {
+                cx: endX + Math.cos(sparkAngle) * sparkDist,
+                cy: endY + Math.sin(sparkAngle) * sparkDist
+              },
+              opacity: 0,
+              duration: gsap.utils.random(0.4, 0.8),
+              ease: 'power2.out',
+              onComplete: () => spark.remove()
+            });
+          }
+        });
+      }
     }
-    const flash = document.createElementNS(ns,'circle'); flash.setAttribute('cx',cx); flash.setAttribute('cy',cy); flash.setAttribute('r',6); flash.setAttribute('fill','#FFD700'); flash.style.filter='drop-shadow(0 0 20px #FFD700)'; g.appendChild(flash); gsap.to(flash, { attr:{ r: gsap.utils.random(60,160) }, opacity:0, duration:0.6, ease:'power2.out', onComplete: ()=>flash.remove() });
-    gsap.delayedCall(duration+0.6, ()=>{ try{ g.remove(); }catch(e){} });
+    
+    gsap.delayedCall(duration, () => g.remove());
   };
 
-  for (let b=0;b<bursts;b++){ const cx = gsap.utils.random(vb.width*0.12, vb.width*0.88); const cy = gsap.utils.random(vb.height*0.08, vb.height*0.5); gsap.delayedCall(b*0.45, ()=>createBurst(cx,cy,perBurst)); }
-  gsap.delayedCall(duration + bursts*0.45 + 0.9, ()=>{ try{ master.remove(); }catch(e){} });
+  // Lancer plusieurs bursts
+  for (let b = 0; b < bursts; b++) {
+    const cx = gsap.utils.random(vb.width * 0.2, vb.width * 0.8);
+    const cy = gsap.utils.random(vb.height * 0.1, vb.height * 0.4);
+    gsap.delayedCall(b * 0.6, () => createBurst(cx, cy));
+  }
+
+  gsap.delayedCall(duration + bursts * 0.6 + 1, () => master.remove());
   return master;
 };
 
+/**
+ * Animation d'entrée du radar
+ * @param {HTMLElement} radarRoot - L'élément racine du radar
+ * @param {Object} options - Options de l'animation
+ */
+Animation.radarEntry = function(radarRoot, options = {}) {
+  if (!radarRoot) return null;
+  
+  const duration = options.duration || 0.8;
+  const polygon = radarRoot.querySelector('.radar-data polygon');
+  const circles = radarRoot.querySelectorAll('.radar-data circle');
+  
+  const tl = gsap.timeline();
+  
+  if (polygon) {
+    tl.from(polygon, {
+      scale: 0,
+      transformOrigin: 'center',
+      duration: duration,
+      ease: 'back.out(1.7)'
+    }, 0);
+  }
+  
+  circles.forEach((circle, i) => {
+    tl.from(circle, {
+      scale: 0,
+      transformOrigin: 'center',
+      duration: duration * 0.625,
+      delay: 0.2 + i * 0.1,
+      ease: 'back.out(1.7)'
+    }, 0);
+  });
+  
+  return tl;
+};
 
 export { Animation };

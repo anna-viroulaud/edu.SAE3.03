@@ -85,68 +85,24 @@ class TreeSkillsView {
     return this.root.querySelectorAll('g[id^="level_"]');
   }
 
-
   /**
-   * INTERACTIONS : Active les clics sur les AC
-   * @param {Function} onACClick - Callback appelé avec le code AC (ex: "AC11.01")
-   */
-  enableACInteractions(onACClick) {
-    const allACs = this.getAllACs();
-    
-    allACs.forEach(acElement => {
-      acElement.style.cursor = 'pointer';
-
-      // Hover: add/remove a class to control opacity only (no scaling)
-      acElement.addEventListener('mouseenter', () => {
-        try { acElement.classList.add('ac-hover'); } catch (e) {}
-      });
-      acElement.addEventListener('mouseleave', () => {
-        try { acElement.classList.remove('ac-hover'); } catch (e) {}
-      });
-
-      // Click: call external handler
-      acElement.addEventListener('click', () => {
-        onACClick(acElement.id);
-      });
-    });
-  }
-
-
-  /**
-   * AFFICHAGE : Affiche les labels sous tous les AC
-   * @param {Object} progressions - Objet {acCode: progression} (ex: {"AC11.01": 75})
-   * 
-   * Logique de couleur :
-   * - Si progression > 0 : couleur du niveau (rouge, orange, vert selon niveau)
-   * - Si progression = 0 : gris par défaut
+   * Affiche les labels sous tous les AC
    */
   showAllACLabels(progressions = {}) {
-    const allACs = this.getAllACs();
-    
-    allACs.forEach(acElement => {
-      const acCode = acElement.id; // Ex: "AC11.01"
+    this.getAllACs().forEach(acElement => {
       const rect = acElement.querySelector('rect');
       if (!rect) return;
       
-      // Récupérer la progression de cet AC
+      const acCode = acElement.id;
       const progression = progressions[acCode] || 0;
-      
-      // Déterminer la couleur du label
       const labelColor = this.getLabelColor(acCode, progression);
       
-      // Créer ou mettre à jour le label
       this.createACLabel(acElement, acCode, rect, labelColor);
     });
   }
 
   /**
-   * MISE À JOUR : Met à jour visuellement un AC selon sa progression
-   * @param {string} acCode - Code de l'AC (ex: "AC11.01")
-   * @param {number} progression - Valeur de 0 à 100
-   * 
-   * Actions :
-   * 1. Met à jour le rectangle de progression (remplissage coloré)
-   * 2. Met à jour la couleur du label
+   * Met à jour visuellement un AC selon sa progression
    */
   updateACVisual(acCode, progression) {
     const acElement = this.root.getElementById(acCode);
@@ -155,143 +111,99 @@ class TreeSkillsView {
     const rect = acElement.querySelector('rect');
     if (!rect) return;
 
-    // 1. Mettre à jour le rectangle de progression
     const levelColor = this.getLevelColor(acCode);
     this.updateProgressRect(acElement, rect, progression, levelColor);
-
-    // 2. Mettre à jour le label
+    
     const labelColor = this.getLabelColor(acCode, progression);
     this.createACLabel(acElement, acCode, rect, labelColor);
-      // proof indicator (caller should call setProofIndicator separately when needed)
   }
 
-    /**
-     * Ajoute ou retire un indicateur visuel lorsque l'AC possède une preuve
-     * @param {string} acCode
-     * @param {string|null} proof
-     */
-    setProofIndicator(acCode, proof) {
-      const acElement = this.root.getElementById(acCode);
-      if (!acElement) return;
-
-      // retirer indicateur existant
-      const existing = acElement.querySelector('.proof-indicator');
-      if (existing) existing.remove();
-
-      if (!proof) return; // rien à ajouter
-
-      // Créer un petit cercle en haut à droite du rect (si rect disponible)
-      const rect = acElement.querySelector('rect');
-      let cx = 0, cy = 0;
-      if (rect) {
-        const x = parseFloat(rect.getAttribute('x')) || 0;
-        const y = parseFloat(rect.getAttribute('y')) || 0;
-        const w = parseFloat(rect.getAttribute('width')) || 0;
-        cx = x + w - 6;
-        cy = y + 6;
-      } else {
-        cx = 0; cy = 0;
-      }
-
-      const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      c.classList.add('proof-indicator');
-      c.setAttribute('cx', String(cx));
-      c.setAttribute('cy', String(cy));
-      c.setAttribute('r', '4');
-      c.setAttribute('fill', '#ffffffff');
-      c.setAttribute('stroke', '#ffffff');
-      c.setAttribute('stroke-width', '0.8');
-
-      acElement.appendChild(c);
-    }
-
   /**
-   * MISE À JOUR : Met à jour tous les cercles de niveau selon les progressions
-   * @param {Object} progressions - Objet {acCode: progression}
-   * 
-   * Calcule la progression moyenne de tous les AC d'un niveau
-   * et met à jour le cercle avec un arc de progression
+   * Ajoute un indicateur visuel pour les AC avec preuve
    */
-  updateAllLevels(progressions) {
-    const allLevels = this.getAllLevels();
-    
-    allLevels.forEach(levelElement => {
-      // Trouver tous les AC de ce niveau
-      const levelACs = this.findACsForLevel(levelElement);
-      if (levelACs.length === 0) return;
-      
-      // Calculer la progression moyenne
-      const averageProgression = this.calculateAverageProgression(levelACs, progressions);
-      
-      // Récupérer la couleur du premier AC
-      const firstACCode = levelACs[0].id;
-      const levelColor = this.getLevelColor(firstACCode);
-      
-      // Mettre à jour le cercle de progression
-      const circle = levelElement.querySelector('circle, ellipse');
-      if (circle) {
-        this.updateLevelCircle(levelElement, circle, averageProgression, levelColor);
-      }
-    });
+  setProofIndicator(acCode, proof) {
+    const acElement = this.root.getElementById(acCode);
+    if (!acElement) return;
+
+    // Retirer l'indicateur existant
+    const existing = acElement.querySelector('.proof-indicator');
+    if (existing) existing.remove();
+    if (!proof) return;
+
+    // Positionner le cercle en haut à droite du rectangle
+    const rect = acElement.querySelector('rect');
+    const x = rect ? parseFloat(rect.getAttribute('x')) || 0 : 0;
+    const y = rect ? parseFloat(rect.getAttribute('y')) || 0 : 0;
+    const w = rect ? parseFloat(rect.getAttribute('width')) || 0 : 0;
+
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.classList.add('proof-indicator');
+    circle.setAttribute('cx', String(x + w - 6));
+    circle.setAttribute('cy', String(y + 6));
+    circle.setAttribute('r', '4');
+    circle.setAttribute('fill', '#ffffffff');
+    circle.setAttribute('stroke', '#ffffff');
+    circle.setAttribute('stroke-width', '0.8');
+
+    acElement.appendChild(circle);
   }
 
+  /**
+   * Met à jour un cercle de niveau (méthode pure - pas de calcul)
+   */
+  updateLevelVisuals(levelId, progression) {
+    const levelElement = this.root.querySelector(`g[id="${levelId}"]`);
+    if (!levelElement) return;
+    
+    const circle = levelElement.querySelector('circle, ellipse');
+    if (!circle) return;
+    
+    const levelCode = levelId.replace('level_', '');
+    const levelColor = this.LEVEL_COLORS[levelCode] || 'var(--color-stroke-default)';
+    
+    this.updateLevelCircle(levelElement, circle, progression, levelColor);
+  }
 
   /**
-   * Récupère la couleur CSS d'un niveau à partir du code AC
-   * Ex: "AC11.01" → extrait "11" → retourne 'var(--color-comprendre-1)'
+   * Récupère la couleur d'un niveau depuis le code AC
    */
   getLevelColor(acCode) {
-    const levelCode = acCode.substring(2, 4); // "AC11.01" → "11"
+    const levelCode = acCode.substring(2, 4);
     return this.LEVEL_COLORS[levelCode] || 'var(--color-stroke-default)';
   }
 
   /**
    * Détermine la couleur du label selon la progression
-   * - 0% → gris
-   * - >0% → couleur du niveau
    */
   getLabelColor(acCode, progression) {
-    if (progression > 0) {
-      return this.getLevelColor(acCode);
-    }
-    return 'var(--color-stroke-default)'; // Gris par défaut
+    return progression > 0 ? this.getLevelColor(acCode) : 'var(--color-stroke-default)';
   }
 
   /**
-   * Convertit une variable CSS (ex: 'var(--color-comprendre-1)') en couleur hex
-   * Nécessaire car SVG ne comprend pas les variables CSS dans setAttribute()
+   * Convertit une variable CSS en couleur hex
    */
   cssVarToHex(cssVar) {
     if (!cssVar.startsWith('var(')) return cssVar;
     
-    // Extraire le nom de la variable : 'var(--color-name)' → '--color-name'
     const varName = cssVar.match(/var\((--[\w-]+)\)/)?.[1];
     if (!varName) return cssVar;
     
-    // Lire la valeur calculée depuis le CSS
-    const color = getComputedStyle(document.documentElement)
-      .getPropertyValue(varName)
-      .trim();
-    
-    return color || '#6E7275'; // Fallback gris
+    const color = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    return color || '#6E7275';
   }
 
 
   /**
-   * Crée ou met à jour le texte du code AC sous le rectangle
-   * Ex: Affiche "AC11.01" en dessous du rectangle avec la bonne couleur
+   * Crée ou met à jour le label d'un AC
    */
   createACLabel(acElement, acCode, rect, color) {
-    // Chercher si le label existe déjà
     let label = acElement.querySelector('.ac-label');
     
     if (!label) {
-      // Créer un nouveau label SVG
       label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       label.classList.add('ac-label');
       label.textContent = acCode;
       
-      // Position : centré horizontalement, 8px sous le rectangle
       const rectX = parseFloat(rect.getAttribute('x'));
       const rectWidth = parseFloat(rect.getAttribute('width'));
       const rectY = parseFloat(rect.getAttribute('y'));
@@ -300,31 +212,27 @@ class TreeSkillsView {
       label.setAttribute('x', rectX + (rectWidth / 2));
       label.setAttribute('y', rectY + rectHeight + 8);
       label.setAttribute('text-anchor', 'middle');
-      // Enable SVG transforms on the label for hover effects
-      try { label.style.transformBox = 'fill-box'; label.style.transformOrigin = '50% 50%'; } catch (e) {}
+      label.setAttribute('opacity', '0.95');
+      label.style.fontSize = '7px';
       
-      // Ajouter au groupe AC
+      try { 
+        label.style.transformBox = 'fill-box'; 
+        label.style.transformOrigin = '50% 50%'; 
+      } catch (e) {}
+      
       acElement.appendChild(label);
     }
     
-    // Mettre à jour la couleur (conversion CSS var → hex)
-    const hexColor = this.cssVarToHex(color);
-    label.setAttribute('fill', hexColor);
-    // Make label more visible by default
-    label.setAttribute('opacity', '0.95');
-    label.style.fontSize = '7px';
+    label.setAttribute('fill', this.cssVarToHex(color));
   }
 
   /**
-   * Met à jour le rectangle de progression (remplissage coloré)
-   * Crée un second rectangle par-dessus le premier avec une largeur proportionnelle
+   * Met à jour le rectangle de progression
    */
   updateProgressRect(acElement, rect, progression, color) {
-    // Récupérer ou créer le rectangle de progression
     let fillRect = acElement.querySelector('.progress-fill');
     
     if (!fillRect) {
-      // Créer un nouveau rectangle identique au premier
       fillRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       fillRect.classList.add('progress-fill');
       fillRect.setAttribute('x', rect.getAttribute('x'));
@@ -334,67 +242,25 @@ class TreeSkillsView {
       fillRect.setAttribute('stroke-width', rect.getAttribute('stroke-width'));
       fillRect.setAttribute('opacity', '0.8');
       
-      // Insérer juste après le rectangle de base
       rect.parentNode.insertBefore(fillRect, rect.nextSibling);
     }
     
-    // Calculer la largeur en fonction de la progression
     const rectWidth = parseFloat(rect.getAttribute('width'));
     const fillWidth = (rectWidth * progression) / 100;
     
-    // Appliquer (mise à jour immédiate — animation via CSS si désirée)
     fillRect.setAttribute('fill', color);
     fillRect.setAttribute('stroke', color);
     fillRect.setAttribute('width', String(fillWidth));
   }
 
-
-  /**
-   * Trouve tous les AC appartenant à un niveau (cercle)
-   * Remonte dans le DOM jusqu'au groupe "niveau_X" parent
-   */
-  findACsForLevel(levelElement) {
-    // Remonter jusqu'au groupe parent "niveau_1", "niveau_2", etc.
-    let niveauGroup = levelElement.parentElement;
-    while (niveauGroup && !niveauGroup.id.startsWith('niveau_')) {
-      niveauGroup = niveauGroup.parentElement;
-    }
-    
-    if (!niveauGroup) return [];
-    
-    // Retourner tous les groupes AC enfants
-    return Array.from(niveauGroup.querySelectorAll('g[id^="AC"]'));
-  }
-
-  /**
-   * Calcule la progression moyenne de plusieurs AC
-   */
-  calculateAverageProgression(acElements, progressions) {
-    let total = 0;
-    let count = 0;
-    
-    acElements.forEach(acElement => {
-      const acCode = acElement.id;
-      const progression = progressions[acCode] || 0;
-      total += progression;
-      count++;
-    });
-    
-    return count > 0 ? total / count : 0;
-  }
-
   /**
    * Met à jour le cercle de niveau avec un arc de progression
-   * Utilise stroke-dasharray pour créer un arc proportionnel à la progression
    */
   updateLevelCircle(levelGroup, circle, progression, color) {
     const isEllipse = circle.tagName === 'ellipse';
-    
-    // Récupérer ou créer le cercle de progression
     let progressCircle = levelGroup.querySelector('.level-progress-circle');
     
     if (!progressCircle) {
-      // Créer un cercle identique au premier
       progressCircle = document.createElementNS('http://www.w3.org/2000/svg', circle.tagName);
       progressCircle.classList.add('level-progress-circle');
       
@@ -416,22 +282,19 @@ class TreeSkillsView {
       progressCircle.setAttribute('stroke-linecap', 'round');
       progressCircle.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
       
-      // Insérer après le cercle de base
       circle.parentNode.insertBefore(progressCircle, circle.nextSibling);
     }
     
-    // Si pas de progression, masquer l'arc
     if (progression <= 0) {
       progressCircle.setAttribute('stroke-dasharray', '0 9999');
       return;
     }
     
-    // Appliquer couleur et animer l'arc via helper
     progressCircle.setAttribute('stroke', color);
+    
     try {
       Animation.animateLevelArc(levelGroup, progression, 1.0);
     } catch (e) {
-      // Fallback: appliquer directement
       const rx = isEllipse ? parseFloat(circle.getAttribute('rx')) : parseFloat(circle.getAttribute('r'));
       const ry = isEllipse ? parseFloat(circle.getAttribute('ry')) : parseFloat(circle.getAttribute('r'));
       const circumference = Math.PI * (3 * (rx + ry) - Math.sqrt((3 * rx + ry) * (rx + 3 * ry)));
