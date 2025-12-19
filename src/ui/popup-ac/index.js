@@ -32,9 +32,9 @@ class PopupACView {
    * Initialise le slider de progression avec animations
    */
   initSlider() {
-    const slider = this.root.querySelector('#progressSlider');
-    const valueDisplay = this.root.querySelector('#progressValue');
-    const proofSection = this.root.querySelector('#proofSection');
+    const slider = this.root.querySelector('.popup-ac__slider');
+    const valueDisplay = this.root.querySelector('.popup-ac__progress-value');
+    const proofSection = this.root.querySelector('.popup-ac__proof');
     
     if (slider && valueDisplay) {
       // Fonction pour mettre à jour le gradient et le texte
@@ -52,8 +52,8 @@ class PopupACView {
         updateSlider(value);
         
         // Activer/désactiver le champ preuve selon la progression
-        const proofInput = this.root.querySelector('#proofInput');
-        const proofLabel = this.root.querySelector('.proof-label');
+        const proofInput = this.root.querySelector('.popup-ac__textarea');
+        const proofLabel = proofSection?.querySelector('.popup-ac__label');
         if (value > 1) {
           if (proofInput) proofInput.disabled = false;
           if (proofSection) proofSection.classList.remove('disabled');
@@ -76,16 +76,21 @@ class PopupACView {
   open(acData) {
     this.currentACCode = acData.code;
     
-    this.root.querySelector('#popupCode').textContent = acData.code;
-    this.root.querySelector('#popupLibelle').textContent = acData.libelle;
-    this.root.querySelector('#popupAnnee').textContent = acData.annee;
-    this.root.querySelector('#popupCompetence').textContent = acData.competence;
+    this.root.querySelector('.popup-ac__code').textContent = acData.code;
+    this.root.querySelector('.popup-ac__description').textContent = acData.libelle;
+    
+    // Mettre à jour les badges (année et compétence)
+    const badges = this.root.querySelectorAll('.popup-ac__badge');
+    if (badges.length >= 2) {
+      badges[0].textContent = acData.annee;
+      badges[1].textContent = acData.competence;
+    }
     
     // Initialiser le slider avec la progression existante
-    const slider = this.root.querySelector('#progressSlider');
-    const valueDisplay = this.root.querySelector('#progressValue');
-    const proofSection = this.root.querySelector('#proofSection');
-    const proofInput = this.root.querySelector('#proofInput');
+    const slider = this.root.querySelector('.popup-ac__slider');
+    const valueDisplay = this.root.querySelector('.popup-ac__progress-value');
+    const proofSection = this.root.querySelector('.popup-ac__proof');
+    const proofInput = this.root.querySelector('.popup-ac__textarea');
     
     if (slider && valueDisplay) {
       // Coerce la progression en nombre et fallback à 0 si invalide
@@ -96,7 +101,7 @@ class PopupACView {
       slider.style.background = `linear-gradient(to right, #6E7275 0%, #6E7275 ${progression}%, #1a1a1a ${progression}%, #1a1a1a 100%)`;
       
       // Activer/désactiver le champ preuve selon la progression
-      const proofLabel = this.root.querySelector('.proof-label');
+      const proofLabel = proofSection?.querySelector('.popup-ac__label');
       if (progression > 0) {
         if (proofInput) proofInput.disabled = false;
         if (proofSection) proofSection.classList.remove('disabled');
@@ -113,6 +118,8 @@ class PopupACView {
       }
     }
     
+    // Supprimer le modifier --hidden et ajouter la classe active
+    this.root.classList.remove('popup-ac--hidden');
     this.root.classList.add('active');
   }
 
@@ -121,6 +128,8 @@ class PopupACView {
    */
   close() {
     this.root.classList.remove('active');
+    // Remettre le modifier --hidden pour cacher complètement la popup
+    this.root.classList.add('popup-ac--hidden');
   }
 
   /**
@@ -128,12 +137,12 @@ class PopupACView {
    */
   attachEvents() {
   // 1. Bouton valider
-  const validateBtn = this.root.querySelector('#validateBtn');
+  const validateBtn = this.root.querySelector('.popup-ac__btn--validate');
   if (validateBtn) {
     validateBtn.addEventListener('click', () => {
-      const slider = this.root.querySelector('#progressSlider');
+      const slider = this.root.querySelector('.popup-ac__slider');
       const progression = parseInt(slider.value);
-      const proofInput = this.root.querySelector('#proofInput');
+      const proofInput = this.root.querySelector('.popup-ac__textarea');
       const proof = proofInput ? proofInput.value.trim() : '';
 
       try {
@@ -153,7 +162,7 @@ class PopupACView {
   }
     
     // Bouton fermer
-    const closeBtn = this.root.querySelector('#closePopupBtn');
+    const closeBtn = this.root.querySelector('.popup-ac__btn--cancel');
     if (closeBtn) {
       closeBtn.addEventListener('click', () => this.close());
     }

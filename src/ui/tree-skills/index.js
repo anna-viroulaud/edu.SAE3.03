@@ -155,32 +155,58 @@ class TreeSkillsView {
   levelCodeToSvgId(levelCode) {
     const mapping = {
       // Compétence 1 - Comprendre
-      '11': 'level_1',        // niveau_1 (BUT1)
-      '21': 'level_1_2',      // niveau_2 (BUT2)
-      '31': 'level_1_5',      // niveau_3 (BUT3)
+      '11': 'level_1',        // niveau_1 (BUT1) - AC11
+      '21': 'level_1_2',      // niveau_2 (BUT2) - AC21
+      '31': 'level_1_5',      // niveau_3 (BUT3) - AC31
       
       // Compétence 2 - Concevoir  
-      '12': 'level_1_3',      // niveau_1_2 (BUT1)
-      '22': 'level_1_4',      // niveau_2_2 (BUT2)
-      '32': 'level_1_8',      // niveau_3_2 (BUT3)
+      '12': 'level_1_3',      // niveau_1_2 (BUT1) - AC12
+      '22': 'level_1_4',      // niveau_2_2 (BUT2) - AC22
+      '32': 'level_1_5',      // niveau_3 (BUT3) - AC32 PARTAGE avec AC31 !
       
       // Compétence 3 - Exprimer
-      '13': 'level_1_6',      // niveau_1_3 (BUT1)
-      '23': 'level_1_7',      // niveau_2_3 (BUT2)
-      '33': 'level_1_11',     // niveau_3_3 (BUT3)
+      '13': 'level_1_6',      // niveau_1_3 (BUT1) - AC13
+      '23': 'level_1_7',      // niveau_2_3 (BUT2) - AC23
+      '33': 'level_1_8',      // niveau_3_2 (BUT3) - AC33
       
       // Compétence 4 - Développer
-      '14': 'level_1_9',      // niveau_1_4 (BUT1)
-      '24': 'level_1_10',     // niveau_2_4 (BUT2)
-      '34': 'level_1_14',     // niveau_3_4 (BUT3)
+      '14': 'level_1_9',      // niveau_1_4 (BUT1) - AC14
+      '24': 'level_1_10',     // niveau_2_4 (BUT2) - AC24
+      '34': 'level_1_11',     // niveau_3_3 (BUT3) - AC34
       
       // Compétence 5 - Entreprendre
-      '15': 'level_1_12',     // niveau_1_5 (BUT1)
-      '25': 'level_1_13',     // niveau_2_5 (BUT2)
-      '35': null,             // niveau_3_5 n'existe pas dans le SVG
+      '15': 'level_1_12',     // niveau_1_5 (BUT1) - AC15
+      '25': 'level_1_13',     // niveau_2_5 (BUT2) - AC25
+      '35': 'level_1_14',     // niveau_3_4 (BUT3) - AC35
     };
     
     return mapping[levelCode] || null;
+  }
+
+  /**
+   * Convertit un ID SVG en code niveau (inverse de levelCodeToSvgId)
+   * @param {string} svgId - ID SVG (ex: 'level_1_14')
+   * @returns {string} Code niveau (ex: '34')
+   */
+  svgIdToLevelCode(svgId) {
+    const reverseMapping = {
+      'level_1': '11',
+      'level_1_2': '21',
+      'level_1_5': '31',      // Par défaut retourne 31 (AC31 avant AC32)
+      'level_1_3': '12',
+      'level_1_4': '22',
+      'level_1_8': '33',      // AC33
+      'level_1_6': '13',
+      'level_1_7': '23',
+      'level_1_11': '34',     // AC34
+      'level_1_9': '14',
+      'level_1_10': '24',
+      'level_1_14': '35',     // AC35
+      'level_1_12': '15',
+      'level_1_13': '25',
+    };
+    
+    return reverseMapping[svgId] || null;
   }
 
   /**
@@ -209,8 +235,8 @@ class TreeSkillsView {
       return;
     }
     
-    // Extraire le code niveau original pour trouver la couleur
-    let levelCode = levelId.startsWith('level_') ? levelId.replace('level_', '').replace('_', '') : levelId;
+    // Utiliser le code niveau original SI fourni, sinon le récupérer depuis l'ID SVG
+    let levelCode = levelId.startsWith('level_') ? this.svgIdToLevelCode(svgId) : levelId;
     const levelColor = this.LEVEL_COLORS[levelCode] || 'var(--color-stroke-default)';
     
     this.updateLevelCircle(levelElement, circle, progression, levelColor);

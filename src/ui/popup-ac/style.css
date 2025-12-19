@@ -1,290 +1,448 @@
-/* Style minimaliste popup AC */
-.popup-overlay {
+/* ========================================
+   Popup AC - Composant BEM
+   Structure: Block__Element--Modifier
+   ======================================== */
+
+/* Block: popup-ac */
+.popup-ac {
+    /* 1. Positionnement */
     position: fixed;
     top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    display: none;
+    right: 0;
+    z-index: 1000;
+    
+    /* 2. Layout & Box Model */
+    display: flex;
     justify-content: flex-end;
     align-items: flex-start;
-    z-index: 1000;
+    width: 100%;
+    height: 100%;
+    padding: 30px;
+    
+    /* 3. Typographie */
+    
+    /* 4. Visuel */
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    
+    /* 5. Divers */
     opacity: 0;
-    transition: opacity 0.3s ease;
     pointer-events: none;
+    transition: opacity 0.3s ease;
 }
 
-.popup-overlay.active {
-    display: flex;
+/* Modifier: popup-ac--hidden */
+.popup-ac--hidden {
+    display: none;
+}
+
+/* State: active */
+.popup-ac.active {
     opacity: 1;
     pointer-events: auto;
 }
 
-.popup-content {
-    background: var(--color-black);
-    border: 1.5px solid var(--color-stroke-default);
-    border-radius: var(--spacing-xs);
+/* Element: popup-ac__container */
+.popup-ac__container {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     width: 300px;
     max-height: 450px;
     overflow: hidden;
+    border: 1.5px solid var(--color-stroke-default);
+    border-radius: var(--spacing-xs);
+    
+    /* 3. Typographie */
+    
+    /* 4. Visuel */
+    background: var(--color-black);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    
+    /* 5. Divers */
     transform: translateX(100%);
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    margin: 30px 30px 0 0;
 }
 
-.popup-overlay.active .popup-content {
+.popup-ac.active .popup-ac__container {
     transform: translateX(0);
 }
 
-.popup-header {
+/* Element: popup-ac__header */
+.popup-ac__header {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     padding: var(--spacing-lg);
-    background: var(--color-black);
     border-bottom: 1.5px solid var(--color-stroke-default);
+    
+    /* 3. Typographie */
     color: var(--color-white);
+    
+    /* 4. Visuel */
+    background: var(--color-black);
+    
+    /* 5. Divers */
 }
 
-.popup-code {
+/* Element: popup-ac__code */
+.popup-ac__code {
+
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: var(--spacing-xs);
+    margin-left: 0;
+    
+
+    color: var(--color-white);
+    font-family: 'Courier New', monospace;
     font-size: 22px;
     font-weight: 700;
-    margin: 0 0 var(--spacing-xs) 0;
-    color: var(--color-white);
     letter-spacing: 1px;
-    font-family: 'Courier New', monospace;
+
 }
 
-.popup-description {
-    font-size: 13px;
-    color: var(--color-gray-medium);
-    line-height: 1.4;
+/* Element: popup-ac__description */
+.popup-ac__description {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     margin: 0 0 var(--spacing-sm) 0;
+    
+    /* 3. Typographie */
+    color: var(--color-gray-medium);
+    font-size: 13px;
+    line-height: 1.4;
+    
+    /* 4. Visuel */
+    
+    /* 5. Divers */
 }
 
-.popup-badges {
+/* Element: popup-ac__badges */
+.popup-ac__badges {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     display: flex;
-    gap: var(--spacing-xs);
     flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    
+    /* 3. Typographie */
+    
+    /* 4. Visuel */
+    
+    /* 5. Divers */
 }
 
-.popup-badge {
+/* Element: popup-ac__badge */
+.popup-ac__badge {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     padding: 4px 12px;
+    border: 1px solid var(--color-stroke-default);
     border-radius: 4px;
+    
+    /* 3. Typographie */
+    color: var(--color-white);
     font-size: 11px;
     font-weight: 600;
-    background: transparent;
-    color: var(--color-white);
-    border: 1px solid var(--color-stroke-default);
-    text-transform: uppercase;
     letter-spacing: 0.5px;
+    text-transform: uppercase;
+    
+    /* 4. Visuel */
+    background: transparent;
+    
+    /* 5. Divers */
 }
 
-.popup-body {
-    padding: var(--spacing-lg);
+/* Element: popup-ac__body */
+.popup-ac__body {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     max-height: 300px;
     overflow-y: auto;
+    padding: var(--spacing-lg);
+    
+    /* 3. Typographie */
+    
+    /* 4. Visuel */
+    background: var(--color-black);
+    
+    /* 5. Divers */
+}
+
+/* Scrollbar pour le body */
+.popup-ac__body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.popup-ac__body::-webkit-scrollbar-track {
     background: var(--color-black);
 }
 
-.progression-section {
+.popup-ac__body::-webkit-scrollbar-thumb {
+    background: var(--color-stroke-default);
+    border-radius: 2px;
+}
+
+/* Element: popup-ac__progression */
+.popup-ac__progression {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     margin-bottom: var(--spacing-lg);
+    
+    /* 3. Typographie */
+    
+    /* 4. Visuel */
+    
+    /* 5. Divers */
 }
 
-/* Section preuve */
-.proof-section {
-    margin-bottom: var(--spacing-lg);
-    padding: var(--spacing-md);
-    padding-right: 40px;
-    background: var(--color-gray-darker);
-    border-radius: 4px;
-    border: 1px solid var(--color-stroke-default);
-    transition: opacity 0.2s ease;
-}
-
-.proof-section.disabled {
-    opacity: 0.5;
-}
-
-.proof-label {
+/* Element: popup-ac__label */
+.popup-ac__label {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     display: block;
+    margin-bottom: var(--spacing-sm);
+    
+    /* 3. Typographie */
+    color: var(--color-stroke-default);
     font-size: 11px;
     font-weight: 600;
-    color: var(--color-stroke-default);
-    margin-bottom: var(--spacing-sm);
-    text-transform: uppercase;
     letter-spacing: 1px;
+    text-transform: uppercase;
+    
+    /* 4. Visuel */
+    
+    /* 5. Divers */
     transition: color 0.2s ease;
 }
 
-.proof-section.disabled .proof-label {
-    color: var(--color-gray-dark);
-}
-
-#proofInput {
-    width: 100%;
-    padding: var(--spacing-sm);
-    background: var(--color-black);
-    border: 1px solid var(--color-stroke-default);
-    border-radius: 4px;
-    color: var(--color-white);
-    font-size: 12px;
-    font-family: inherit;
-    resize: vertical;
-    min-height: 60px;
-    transition: border-color 0.2s ease, opacity 0.2s ease;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    white-space: pre-wrap;
-}
-
-#proofInput:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    background: var(--color-gray-darker);
-}
-
-#proofInput:focus {
-    outline: none;
-    border-color: var(--color-white);
-}
-
-#proofInput::placeholder {
-    color: var(--color-gray-medium);
-    opacity: 0.6;
-}
-
-.progression-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--color-stroke-default);
-    margin-bottom: var(--spacing-sm);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.progress-container {
+/* Element: popup-ac__progress-container */
+.popup-ac__progress-container {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    
+    /* 3. Typographie */
+    
+    /* 4. Visuel */
+    
+    /* 5. Divers */
 }
 
-.progress-slider {
+/* Element: popup-ac__slider */
+.popup-ac__slider {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     flex: 1;
-    -webkit-appearance: none;
-    appearance: none;
     height: 4px;
     border-radius: 2px;
+    
+    /* 3. Typographie */
+    
+    /* 4. Visuel */
     background: linear-gradient(to right, var(--color-stroke-default) 0%, var(--color-stroke-default) 50%, var(--color-black) 50%, var(--color-black) 100%);
+    
+    /* 5. Divers */
+    -webkit-appearance: none;
+    appearance: none;
     outline: none;
     cursor: pointer;
     transition: height 0.2s ease;
 }
 
-.progress-slider:hover {
+.popup-ac__slider:hover {
     height: 6px;
 }
 
-.progress-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
+.popup-ac__slider::-webkit-slider-thumb {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     width: 16px;
     height: 16px;
-    border-radius: 50%;
-    background: var(--color-stroke-default);
-    cursor: pointer;
     border: 1px solid var(--color-gray-darker);
+    border-radius: 50%;
+    
+    /* 3. Typographie */
+    
+    /* 4. Visuel */
+    background: var(--color-stroke-default);
+    
+    /* 5. Divers */
+    -webkit-appearance: none;
+    cursor: pointer;
     transition: transform 0.2s ease;
 }
 
-.progress-slider::-webkit-slider-thumb:hover {
+.popup-ac__slider::-webkit-slider-thumb:hover {
     transform: scale(1.1);
 }
 
-.progress-slider::-moz-range-thumb {
+.popup-ac__slider::-moz-range-thumb {
     width: 16px;
     height: 16px;
+    border: 1px solid var(--color-gray-darker);
     border-radius: 50%;
     background: var(--color-stroke-default);
     cursor: pointer;
-    border: 1px solid var(--color-gray-darker);
 }
 
-.progress-value {
+/* Element: popup-ac__progress-value */
+.popup-ac__progress-value {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
+    min-width: 50px;
+    
+    /* 3. Typographie */
+    color: var(--color-white);
+    font-family: 'Courier New', monospace;
     font-size: 14px;
     font-weight: 600;
-    color: var(--color-white);
-    min-width: 50px;
     text-align: right;
-    font-family: 'Courier New', monospace;
+    
+    /* 4. Visuel */
+    
+    /* 5. Divers */
 }
 
-.popup-actions {
+/* Element: popup-ac__proof */
+.popup-ac__proof {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-stroke-default);
+    border-radius: 4px;
+    padding-right: 40px;
+    
+    /* 3. Typographie */
+    
+    /* 4. Visuel */
+    background: var(--color-gray-darker);
+    
+    /* 5. Divers */
+    transition: opacity 0.2s ease;
+}
+
+/* Modifier: popup-ac__proof--disabled */
+.popup-ac__proof.disabled {
+    opacity: 0.5;
+}
+
+.popup-ac__proof.disabled .popup-ac__label {
+    color: var(--color-gray-dark);
+}
+
+/* Element: popup-ac__textarea */
+.popup-ac__textarea {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
+    width: 100%;
+    min-height: 60px;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--color-stroke-default);
+    border-radius: 4px;
+    
+    /* 3. Typographie */
+    color: var(--color-white);
+    font-family: inherit;
+    font-size: 12px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    
+    /* 4. Visuel */
+    background: var(--color-black);
+    
+    /* 5. Divers */
+    resize: vertical;
+    transition: border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.popup-ac__textarea:disabled {
+    opacity: 0.5;
+    background: var(--color-gray-darker);
+    cursor: not-allowed;
+}
+
+.popup-ac__textarea:focus {
+    border-color: var(--color-white);
+    outline: none;
+}
+
+.popup-ac__textarea::placeholder {
+    color: var(--color-gray-medium);
+    opacity: 0.6;
+}
+
+/* Element: popup-ac__actions */
+.popup-ac__actions {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     display: flex;
     gap: 10px;
+    
+    /* 3. Typographie */
+    
+    /* 4. Visuel */
+    
+    /* 5. Divers */
 }
 
-.btn-validate,
-.btn-cancel {
+/* Element: popup-ac__btn */
+.popup-ac__btn {
+    /* 1. Positionnement */
+    
+    /* 2. Layout & Box Model */
     flex: 1;
     padding: 10px 18px;
+    border: 1.5px solid var(--color-stroke-default);
     border-radius: 4px;
+    
+    /* 3. Typographie */
     font-size: 12px;
     font-weight: 600;
-    border: 1.5px solid var(--color-stroke-default);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    
+    /* 4. Visuel */
+    
+    /* 5. Divers */
     cursor: pointer;
     transition: all 0.2s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
-.btn-validate {
-    background: var(--color-stroke-default);
+/* Modifier: popup-ac__btn--validate */
+.popup-ac__btn--validate {
     color: var(--color-black);
+    background: var(--color-stroke-default);
 }
 
-.btn-validate:hover {
+.popup-ac__btn--validate:hover {
     opacity: 0.8;
 }
 
-.btn-cancel {
-    background: transparent;
+/* Modifier: popup-ac__btn--cancel */
+.popup-ac__btn--cancel {
     color: var(--color-stroke-default);
+    background: transparent;
 }
 
-.btn-cancel:hover {
+.popup-ac__btn--cancel:hover {
     background: var(--color-gray-darker);
-}
-
-/* Scrollbar */
-.popup-body::-webkit-scrollbar {
-    width: 4px;
-}
-
-.popup-body::-webkit-scrollbar-track {
-    background: var(--color-black);
-}
-
-.popup-body::-webkit-scrollbar-thumb {
-    background: var(--color-stroke-default);
-    border-radius: 2px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .popup-overlay {
-        justify-content: center;
-        align-items: center;
-        padding: var(--spacing-lg);
-    }
-
-    .popup-content {
-        width: 100%;
-        max-width: 320px;
-        margin: 0;
-        transform: scale(0.9);
-    }
-
-    .popup-overlay.active .popup-content {
-        transform: scale(1);
-    }
 }

@@ -1,35 +1,33 @@
-<div id="acPopup" class="popup-overlay">
-    <div class="popup-content">
-        <div class="popup-header">
-            <h1 class="popup-code" id="popupCode"></h1>
-            <p class="popup-description" id="popupLibelle"></p>
+<article class="popup-ac popup-ac--hidden" id="acPopup">
+    <div class="popup-ac__container">
+        <header class="popup-ac__header">
+            <h1 class="popup-ac__code" id="popupCode"></h1>
+            <p class="popup-ac__description" id="popupLibelle"></p>
             
-            <div class="popup-badges">
-                <span class="popup-badge" id="popupAnnee"></span>
-                <span class="popup-badge" id="popupCompetence"></span>
+            <div class="popup-ac__badges">
+                <span class="popup-ac__badge" id="popupAnnee"></span>
+                <span class="popup-ac__badge" id="popupCompetence"></span>
             </div>
-        </div>
+        </header>
 
-        <div class="popup-body">
-            <div class="progression-section">
-                <label class="progression-label">Progression :</label>
-                <div class="progress-container">
-                    <input type="range" class="progress-slider" id="progressSlider" min="0" max="100" value="50">
-                    <span class="progress-value" id="progressValue"></span>
+        <div class="popup-ac__body">
+            <section class="popup-ac__progression">
+                <label class="popup-ac__label" for="progressSlider">Progression :</label>
+                <div class="popup-ac__progress-container">
+                    <input type="range" class="popup-ac__slider" id="progressSlider" min="0" max="100" value="50" aria-label="Curseur de progression">
+                    <span class="popup-ac__progress-value" id="progressValue" aria-live="polite"></span>
                 </div>
-            </div>
+            </section>
 
-            <div class="proof-section" id="proofSection">
-                <label class="proof-label">Ajouter une preuve (URL ou texte) :</label>
-                <textarea id="proofInput" rows="3" placeholder="Coller un lien de portfolio ou écrire une courte preuve..." disabled></textarea>
-            </div>
+            <section class="popup-ac__proof" id="proofSection">
+                <label class="popup-ac__label" for="proofInput">Ajouter une preuve (URL ou texte) :</label>
+                <textarea class="popup-ac__textarea" id="proofInput" rows="3" placeholder="Coller un lien de portfolio ou écrire une courte preuve..." disabled></textarea>
+            </section>
 
-            <div class="popup-actions">
-                <button class="btn-validate" id="validateBtn">Valider</button>
-                <button class="btn-cancel" id="closePopupBtn">Annuler</button>
-            </div>
+            <footer class="popup-ac__actions">
+                <button class="popup-ac__btn popup-ac__btn--validate" id="validateBtn">Valider</button>
+                <button class="popup-ac__btn popup-ac__btn--cancel" id="closePopupBtn">Annuler</button>
+            </footer>
         </div>
     </div>
-</div>
-
-<!-- modifier mon fichier pour que les données soit en data -->
+</article>
