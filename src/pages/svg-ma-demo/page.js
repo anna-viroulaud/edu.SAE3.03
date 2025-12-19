@@ -147,6 +147,45 @@ C.handler_validateAC = function(acCode, progression, proof) {
   V.treeSkills.updateACVisual(acCode, progression);
   V.treeSkills.updateAllLevels(M.progressions);
   
+  // Animation si AC complété (100%)
+  if (progression === 100) {
+    // Vérifier si le niveau est complet
+    const levelIndex = acCode.charAt(2);
+    const skillIndex = acCode.charAt(3);
+    const levelACs = pn.getAllACsForSkill(skillIndex).filter(ac => ac.charAt(2) === levelIndex);
+    const levelComplete = levelACs.every(ac => M.progressions[ac] === 100);
+    
+    if (levelComplete) {
+            // Find the level element by locating the AC in the SVG and its parent "niveau_" group,
+            // then selecting the level_* child inside that group. This works regardless of ID scheme.
+            const svgRoot = V.treeSkills.dom();
+            // Avoid invalid CSS selectors when IDs contain dots — prefer getElementById fallbacks.
+              const acDom = document.getElementById(acCode)
+                || document.getElementById(acCode.replace('.', '-'))
+                || svgRoot.querySelector(`[id="${acCode}"]`)
+                || svgRoot.querySelector(`[id="${acCode.replace('.', '-')}"]`);
+            let levelElement = null;
+            if (acDom) {
+              const niveauGroup = acDom.closest('[id^="niveau_"]');
+              if (niveauGroup) {
+                levelElement = niveauGroup.querySelector('g[id^="level_"]') || niveauGroup.querySelector('[id*="level_"]');
+              }
+            }
+            if (levelElement) Animation.levelCompletionCrown(levelElement);
+      
+      // Vérifier si la compétence entière est complète
+      const skillACs = pn.getAllACsForSkill(skillIndex);
+      const skillComplete = skillACs.every(ac => M.progressions[ac] === 100);
+      
+      if (skillComplete) {
+        const svgRoot = V.treeSkills.dom().querySelector('#skills_tree') || V.treeSkills.dom();
+        if (svgRoot) {
+          Animation.competitionCompletionFireworks(svgRoot);
+        }
+      }
+    }
+  }
+  
   // Mettre à jour le radar si actif
   const averages = M.getCompetenceAverages();
   V.radarView.update(averages);

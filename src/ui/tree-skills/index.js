@@ -104,9 +104,8 @@ class TreeSkillsView {
         try { acElement.classList.remove('ac-hover'); } catch (e) {}
       });
 
-      // Click: ripple along connection and call external handler
+      // Click: call external handler
       acElement.addEventListener('click', () => {
-        try { Animation.connectionRipple(acElement.id, { color: '#ffffffff' }); } catch (e) {}
         onACClick(acElement.id);
       });
     });

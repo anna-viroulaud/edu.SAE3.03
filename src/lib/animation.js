@@ -302,6 +302,11 @@ Animation.floatLevels = function(svgRoot, options = {}) {
   
   levelGroups.forEach((group, i) => {
     const delay = i * 0.3;
+    
+    // Assurer que la transformation s'applique à tout le groupe
+    group.style.transformBox = 'fill-box';
+    group.style.transformOrigin = 'center';
+    
     gsap.to(group, {
       y: amplitude,
       duration: duration / 2,
@@ -316,36 +321,6 @@ Animation.floatLevels = function(svgRoot, options = {}) {
 };
 
 // --- ANIMATIONS D'IDLE (Quand le tree est statique) ---
-
-/**
- * Animation de glow subtil sur les AC (pulsation légère de l'opacity)
- */
-Animation.acGlowPulse = function(acElements, options = {}) {
-  const els = Array.from(acElements || []);
-  if (!els.length) return null;
-  
-  const duration = options.duration || 4;
-  const minOpacity = options.minOpacity ?? 0.7;
-  const maxOpacity = options.maxOpacity ?? 1.0;
-  const delayRange = options.delayRange || [0, 2];
-  
-  els.forEach((el, i) => {
-    const delay = gsap.utils.random(delayRange[0], delayRange[1]);
-    gsap.fromTo(el, 
-      { opacity: minOpacity },
-      { 
-        opacity: maxOpacity,
-        duration: duration / 2,
-        ease: 'sine.inOut',
-        yoyo: true,
-        repeat: -1,
-        delay: delay
-      }
-    );
-  });
-  
-  return els;
-};
 
 /**
  * Animation des cercles de niveaux (micro-pulse avec scale)
@@ -409,28 +384,6 @@ Animation.connectionWave = function(pathElements, options = {}) {
 };
 
 /**
- * Animation de rotation subtile sur une compétence (dégradé/gradient)
- */
-Animation.competenceGradientRotate = function(competenceGroup, options = {}) {
-  if (!competenceGroup) return null;
-  
-  const duration = options.duration || 8;
-  const fillElement = competenceGroup.querySelector('[fill*="gradient"]') || competenceGroup.querySelector('circle');
-  
-  if (fillElement) {
-    gsap.to(fillElement, {
-      rotation: 360,
-      duration: duration,
-      repeat: -1,
-      ease: 'linear',
-      transformOrigin: '50% 50%'
-    });
-  }
-  
-  return fillElement;
-};
-
-/**
  * Animation d'ensemble pour le tree au repos (applique plusieurs animations)
  */
 Animation.idleTreeAnimation = function(svgRoot, options = {}) {
@@ -456,6 +409,103 @@ Animation.idleTreeAnimation = function(svgRoot, options = {}) {
   // On n'ajoute rien ici pour éviter les conflits
   
   return { acElements, levelElements, pathElements };
+};
+
+// --- ANIMATIONS DE COMPLÉTION (LEVEL / COMPETENCE) ---
+
+/**
+ * Animation de célébration pour un niveau complété : pop + couronne + étincelles
+ */
+Animation.levelCompletionCrown = function(levelElement, options = {}) {
+  if (!levelElement) return null;
+  const ns = 'http://www.w3.org/2000/svg';
+  const duration = options.duration || 1.8;
+
+  const svg = levelElement.closest('svg') || document.querySelector('svg');
+  if (!svg) return null;
+
+  // trouver la bulle (circle/ellipse) ou fallback bbox. If getBBox fails, use DOM rect -> SVG coords fallback.
+  let cx = 0, cy = 0, r = options.radius || 30;
+  try {
+    const bubble = levelElement.querySelector('circle, ellipse') || levelElement;
+    const bb = bubble.getBBox();
+    cx = bb.x + bb.width / 2;
+    cy = bb.y + bb.height / 2;
+    r = Math.max(12, Math.min(bb.width, bb.height) / 2);
+  } catch (e) {
+    // Fallback: compute center using getBoundingClientRect and svg viewBox scaling
+    try {
+      const svgRect = svg.getBoundingClientRect();
+      const lvlRect = levelElement.getBoundingClientRect();
+      const vb = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : { width: svg.clientWidth, height: svg.clientHeight };
+      const scaleX = vb.width / svgRect.width;
+      const scaleY = vb.height / svgRect.height;
+      cx = (lvlRect.left - svgRect.left + lvlRect.width / 2) * scaleX;
+      cy = (lvlRect.top - svgRect.top + lvlRect.height / 2) * scaleY;
+      r = options.radius || Math.max(12, Math.min(lvlRect.width, lvlRect.height) / 2) * Math.max(scaleX, scaleY);
+    } catch (e2) {
+      return null;
+    }
+  }
+
+  // pop du niveau
+  try { levelElement.style.transformBox = 'fill-box'; levelElement.style.transformOrigin = '50% 50%'; } catch(e){}
+  gsap.fromTo(levelElement, { scale: 1 }, { scale: 1.12, duration: 0.18, ease: 'power2.out', yoyo: true, repeat: 1 });
+
+  // couronne glow
+  const crown = document.createElementNS(ns, 'g'); crown.style.pointerEvents = 'none'; svg.appendChild(crown);
+  const glow = document.createElementNS(ns, 'circle'); glow.setAttribute('cx', cx); glow.setAttribute('cy', cy); glow.setAttribute('r', r + 12); glow.setAttribute('fill', 'none'); glow.setAttribute('stroke', '#FFFFFF'); glow.setAttribute('stroke-width', '3'); glow.style.filter = 'drop-shadow(0 0 16px #FFFFFF)'; crown.appendChild(glow);
+  const ring = document.createElementNS(ns, 'circle'); ring.setAttribute('cx', cx); ring.setAttribute('cy', cy); ring.setAttribute('r', r + 28); ring.setAttribute('fill', 'none'); ring.setAttribute('stroke', '#9CFFDF'); ring.setAttribute('stroke-width', '2'); crown.appendChild(ring);
+
+  const tl = gsap.timeline({ onComplete: () => { try { crown.remove(); } catch(e){} } });
+  tl.to(glow, { attr: { r: r + 34 }, duration: duration * 0.5, ease: 'power2.out' }, 0);
+  tl.to(ring, { rotation: 360, transformOrigin: `${cx} ${cy}`, duration: duration * 1.1, ease: 'linear' }, 0);
+  tl.to(crown, { opacity: 0, duration: duration * 0.5, delay: duration * 0.4, ease: 'power2.out' }, 0);
+
+  // quelques étincelles autour
+  try {
+    const sparks = document.createElementNS(ns, 'g'); sparks.style.pointerEvents='none'; svg.appendChild(sparks);
+    for (let i=0;i<10;i++){
+      const p = document.createElementNS(ns,'circle'); const pr = gsap.utils.random(1.5,4);
+      p.setAttribute('r', pr); p.setAttribute('cx', cx); p.setAttribute('cy', cy); p.setAttribute('fill', '#FFFFFF'); sparks.appendChild(p);
+      gsap.to(p, { attr: { cx: cx + gsap.utils.random(-80,80), cy: cy + gsap.utils.random(-80,80) }, opacity: 0, duration: gsap.utils.random(0.9,1.6), ease:'power2.out', onComplete: ()=>p.remove() });
+    }
+    gsap.delayedCall(1.6, ()=>{ try { sparks.remove(); } catch(e){} });
+  } catch(e){}
+
+  return crown;
+};
+
+
+/**
+ * Grand feu d'artifice pour compétence complète (gros, multi-burst)
+ */
+Animation.competitionCompletionFireworks = function(svgRoot, options = {}) {
+  if (!svgRoot) return null;
+  const ns = 'http://www.w3.org/2000/svg';
+  const vb = svgRoot.viewBox?.baseVal || { width: svgRoot.clientWidth || 1000, height: svgRoot.clientHeight || 700 };
+  const duration = options.duration || 3.2;
+  const bursts = options.bursts || 4;
+  const perBurst = options.perBurst || 80;
+  const colors = options.colors || ['#FF2722','#FB8036','#EBBA14','#48D57C','#1AC9BA','#FFFFFF'];
+
+  const master = document.createElementNS(ns,'g'); master.style.pointerEvents='none'; svgRoot.insertBefore(master, svgRoot.firstElementChild);
+
+  const createBurst = (cx,cy,count) => {
+    const g = document.createElementNS(ns,'g'); master.appendChild(g);
+    for (let i=0;i<count;i++){
+      const angle = gsap.utils.random(0,Math.PI*2); const speed = gsap.utils.random(140,640);
+      const tx = Math.cos(angle)*speed; const ty = Math.sin(angle)*speed;
+      const c = document.createElementNS(ns,'circle'); c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r', gsap.utils.random(2,7)); const fill = colors[Math.floor(Math.random()*colors.length)]; c.setAttribute('fill', fill); c.style.filter = `drop-shadow(0 0 ${gsap.utils.random(6,20)}px ${fill})`; g.appendChild(c);
+      gsap.timeline().to(c, { attr:{ cx: cx+tx*0.55, cy: cy+ty*0.55 }, duration: gsap.utils.random(0.28,0.8), ease:'power3.out' }).to(c, { attr:{ cx: cx+tx, cy: cy+ty+gsap.utils.random(80,300) }, opacity:0, duration: gsap.utils.random(duration*0.8,duration*1.2), ease:'power2.in', onComplete: ()=>c.remove() }, '>-0.02');
+    }
+    const flash = document.createElementNS(ns,'circle'); flash.setAttribute('cx',cx); flash.setAttribute('cy',cy); flash.setAttribute('r',6); flash.setAttribute('fill','#FFD700'); flash.style.filter='drop-shadow(0 0 20px #FFD700)'; g.appendChild(flash); gsap.to(flash, { attr:{ r: gsap.utils.random(60,160) }, opacity:0, duration:0.6, ease:'power2.out', onComplete: ()=>flash.remove() });
+    gsap.delayedCall(duration+0.6, ()=>{ try{ g.remove(); }catch(e){} });
+  };
+
+  for (let b=0;b<bursts;b++){ const cx = gsap.utils.random(vb.width*0.12, vb.width*0.88); const cy = gsap.utils.random(vb.height*0.08, vb.height*0.5); gsap.delayedCall(b*0.45, ()=>createBurst(cx,cy,perBurst)); }
+  gsap.delayedCall(duration + bursts*0.45 + 0.9, ()=>{ try{ master.remove(); }catch(e){} });
+  return master;
 };
 
 
