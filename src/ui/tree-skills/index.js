@@ -149,16 +149,68 @@ class TreeSkillsView {
   }
 
   /**
+   * Convertit un code niveau ('11', '21', '31', etc.) en ID SVG
+   * Table de correspondance basée sur l'analyse du template.html
+   */
+  levelCodeToSvgId(levelCode) {
+    const mapping = {
+      // Compétence 1 - Comprendre
+      '11': 'level_1',        // niveau_1 (BUT1)
+      '21': 'level_1_2',      // niveau_2 (BUT2)
+      '31': 'level_1_5',      // niveau_3 (BUT3)
+      
+      // Compétence 2 - Concevoir  
+      '12': 'level_1_3',      // niveau_1_2 (BUT1)
+      '22': 'level_1_4',      // niveau_2_2 (BUT2)
+      '32': 'level_1_8',      // niveau_3_2 (BUT3)
+      
+      // Compétence 3 - Exprimer
+      '13': 'level_1_6',      // niveau_1_3 (BUT1)
+      '23': 'level_1_7',      // niveau_2_3 (BUT2)
+      '33': 'level_1_11',     // niveau_3_3 (BUT3)
+      
+      // Compétence 4 - Développer
+      '14': 'level_1_9',      // niveau_1_4 (BUT1)
+      '24': 'level_1_10',     // niveau_2_4 (BUT2)
+      '34': 'level_1_14',     // niveau_3_4 (BUT3)
+      
+      // Compétence 5 - Entreprendre
+      '15': 'level_1_12',     // niveau_1_5 (BUT1)
+      '25': 'level_1_13',     // niveau_2_5 (BUT2)
+      '35': null,             // niveau_3_5 n'existe pas dans le SVG
+    };
+    
+    return mapping[levelCode] || null;
+  }
+
+  /**
    * Met à jour un cercle de niveau (méthode pure - pas de calcul)
    */
   updateLevelVisuals(levelId, progression) {
-    const levelElement = this.root.querySelector(`g[id="${levelId}"]`);
-    if (!levelElement) return;
+    // Si levelId commence par 'level_', c'est déjà un ID SVG
+    let svgId = levelId;
+    if (!levelId.startsWith('level_')) {
+      // Sinon, c'est un code niveau ('11', '21', etc.) qu'il faut convertir
+      svgId = this.levelCodeToSvgId(levelId);
+    }
+    if (!svgId) {
+      return;
+    }
+    
+    const levelElement = this.root.querySelector(`g[id="${svgId}"]`);
+    if (!levelElement) {
+      console.warn(`Niveau non trouvé dans le DOM: ${svgId} (depuis ${levelId})`);
+      return;
+    }
     
     const circle = levelElement.querySelector('circle, ellipse');
-    if (!circle) return;
+    if (!circle) {
+      console.warn(`Circle/ellipse non trouvé dans ${svgId}`);
+      return;
+    }
     
-    const levelCode = levelId.replace('level_', '');
+    // Extraire le code niveau original pour trouver la couleur
+    let levelCode = levelId.startsWith('level_') ? levelId.replace('level_', '').replace('_', '') : levelId;
     const levelColor = this.LEVEL_COLORS[levelCode] || 'var(--color-stroke-default)';
     
     this.updateLevelCircle(levelElement, circle, progression, levelColor);
@@ -257,7 +309,7 @@ class TreeSkillsView {
    * Met à jour le cercle de niveau avec un arc de progression
    */
   updateLevelCircle(levelGroup, circle, progression, color) {
-    const isEllipse = circle.tagName === 'ellipse';
+    const isEllipse = circle.tagName.toLowerCase() === 'ellipse';
     let progressCircle = levelGroup.querySelector('.level-progress-circle');
     
     if (!progressCircle) {

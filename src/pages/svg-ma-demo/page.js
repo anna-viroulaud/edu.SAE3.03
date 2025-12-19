@@ -50,7 +50,10 @@ M.setACProgression = function(acCode, progression) {
 
 /**
  * Récupère les données d'un AC par son code
+ * @param {string} acCode - Code de l'AC (ex: "AC11.01")
+ * @returns {Object} Objet AC avec code, libelle, annee, competence
  */
+
 M.getACByCode = function(acCode) {
   return {
     code: acCode,
@@ -64,6 +67,8 @@ M.getACByCode = function(acCode) {
 
 /**
  * Calcule la moyenne de progression par compétence
+ * @returns {Object} Objet avec les moyennes par compétence
+ * Exemple: { "Comprendre": 45, "Concevoir": 60, "Exprimer": 30, "Développer": 75, "Entreprendre": 20 }
  */
 M.getCompetenceAverages = function() {
   const competences = {
@@ -74,16 +79,19 @@ M.getCompetenceAverages = function() {
     'Entreprendre': { sum: 0, count: 0 }
   };
   
+  // Parcourir toutes les compétences (1-5)
   for (let skillIndex = 1; skillIndex <= 5; skillIndex++) {
     const acs = pn.getAllACsForSkill(skillIndex);
     const competenceName = pn[skillIndex - 1].nom_court;
     
     acs.forEach(acCode => {
-      competences[competenceName].sum += M.progressions[acCode] || 0;
+      const progression = M.progressions[acCode] || 0;
+      competences[competenceName].sum += progression;
       competences[competenceName].count++;
     });
   }
   
+  // Calculer les moyennes
   const averages = {};
   Object.keys(competences).forEach(comp => {
     const { sum, count } = competences[comp];
@@ -94,25 +102,34 @@ M.getCompetenceAverages = function() {
 }
 
 /**
- * Calcule la progression moyenne d'un niveau
+ * Calcule la progression moyenne d'un niveau spécifique
+ * @param {string} levelIndex - Index du niveau ('1', '2', '3')
+ * @param {string} skillIndex - Index de la compétence ('1', '2', '3', '4', '5')
+ * @returns {number} Progression moyenne (0-100)
  */
 M.calculateLevelProgression = function(levelIndex, skillIndex) {
   const levelACs = pn.getAllACsForSkill(skillIndex).filter(ac => ac.charAt(2) === levelIndex);
   if (levelACs.length === 0) return 0;
   
-  const total = levelACs.reduce((sum, ac) => sum + (M.progressions[ac] || 0), 0);
+  let total = 0;
+  levelACs.forEach(ac => {
+    total += M.progressions[ac] || 0;
+  });
+  
   return total / levelACs.length;
 }
 
 /**
  * Calcule toutes les progressions de niveaux
+ * @returns {Object} Objet {levelId: progression} ex: {"11": 45, "12": 60, ...}
  */
 M.getAllLevelProgressions = function() {
   const progressions = {};
   
   for (let skill = 1; skill <= 5; skill++) {
     for (let level = 1; level <= 3; level++) {
-      progressions[`${level}${skill}`] = M.calculateLevelProgression(String(level), String(skill));
+      const key = `${level}${skill}`;
+      progressions[key] = M.calculateLevelProgression(String(level), String(skill));
     }
   }
   
@@ -134,7 +151,9 @@ C.init = async function() {
  * Gère l'ouverture de l'historique
  */
 C.handler_openHistorique = function() {
-  V.popupHistorique.open(user.getHistory());
+  // use the live user storage so the popup always shows the latest history
+  const hist = user.getHistory();
+  V.popupHistorique.open(hist);
 }
 
 /**
@@ -142,7 +161,9 @@ C.handler_openHistorique = function() {
  */
 C.handler_clickOnAC = function(acCode) {
   const acData = M.getACByCode(acCode);
-  if (acData) V.popupAC.open(acData);
+  if (acData) {
+    V.popupAC.open(acData);
+  }
 }
 
 /**
@@ -173,23 +194,31 @@ C.handler_validateAC = function(acCode, progression, proof) {
  * Met à jour tous les visuels (AC, niveaux, radar)
  */
 C.updateVisuals = function(acCode, progression) {
+  // Mettre à jour l'AC
   V.treeSkills.updateACVisual(acCode, progression);
   
+  // Calculer et mettre à jour tous les niveaux
   const levelProgressions = M.getAllLevelProgressions();
   for (const levelId in levelProgressions) {
-    V.treeSkills.updateLevelVisuals(`level_${levelId}`, levelProgressions[levelId]);
+    V.treeSkills.updateLevelVisuals(levelId, levelProgressions[levelId]);
   }
   
+  // Mettre à jour le radar
   V.radarView.update(M.getCompetenceAverages());
 }
 
 /**
- * Gère les animations de complétion
+ * Gère les animations de complétion (AC, niveau, compétence)
  */
 C.animateACCompletion = function(acCode) {
+  // Animation de feu sur l'AC
+  const svgRoot = V.treeSkills.dom();
   const acDom = document.getElementById(acCode) || document.getElementById(acCode.replace('.', '-'));
-  if (acDom) Animation.acFireEffect(acDom);
+  if (acDom) {
+    Animation.acFireEffect(acDom);
+  }
   
+  // Vérifier les complétions de niveau et compétence
   C.checkLevelCompletion(acCode);
 }
 
@@ -199,16 +228,20 @@ C.animateACCompletion = function(acCode) {
 C.checkLevelCompletion = function(acCode) {
   const skillIndex = acCode.charAt(3);
   const levelIndex = acCode.charAt(2);
+  const svgRoot = V.treeSkills.dom();
   
+  // Vérifier si le niveau est complet
   const levelACs = pn.getAllACsForSkill(skillIndex).filter(ac => ac.charAt(2) === levelIndex);
   if (!levelACs.every(ac => M.progressions[ac] === 100)) return;
   
+  // Animer le niveau complété
   const acDom = document.getElementById(acCode) || document.getElementById(acCode.replace('.', '-'));
   const levelElement = acDom?.closest('[id^="niveau_"]')?.querySelector('g[id^="level_"]');
   if (levelElement) Animation.levelCompletionCrown(levelElement);
   
+  // Vérifier si la compétence est complète
   const skillComplete = pn.getAllACsForSkill(skillIndex).every(ac => M.progressions[ac] === 100);
-  if (skillComplete) Animation.competitionCompletionFireworks(V.treeSkills.dom());
+  if (skillComplete) Animation.competitionCompletionFireworks(svgRoot);
 }
 
 /**
@@ -216,10 +249,14 @@ C.checkLevelCompletion = function(acCode) {
  */
 C.handler_toggleView = function(newView) {
   const wrapper = V.rootPage.querySelector('.view-wrapper');
-  if (wrapper) wrapper.setAttribute('data-current-view', newView);
+  if (wrapper) {
+    wrapper.setAttribute('data-current-view', newView);
+  }
   
+  // Si on passe en vue radar, mettre à jour les données
   if (newView === 'radar') {
-    V.radarView.update(M.getCompetenceAverages());
+    const averages = M.getCompetenceAverages();
+    V.radarView.update(averages);
   }
 }
 
@@ -230,19 +267,20 @@ C.animateTreeEntry = function() {
 
   Animation.starrySky(svgRoot, { count: 80 });
 
+  // lancer l'animation d'arrivée (retourne une timeline ou null)
   const tl = Animation.treeBuild(svgRoot, { duration: 1.0, stagger: 0.035, force: true }) || null;
 
+  // subtle breath pour les 5 bulles centrales
   const centers = ['Comprendre','Concevoir','Exprimer','Developper','Entreprendre']
     .map(id => V.treeSkills.dom().querySelector(`#${id}`))
     .filter(Boolean);
   if (centers.length) Animation.subtleBreath(centers, { minOpacity: 0.97, maxOpacity: 1.0, duration: 10 });
 
+  // Animation de flottement des niveaux
   Animation.floatLevels(svgRoot, { amplitude: 6, duration: 5 });
 
-  const fire = () => { 
-    Animation.shootStar(svgRoot); 
-    gsap.delayedCall(Math.random() * 12 + 8, fire); 
-  };
+  // lancer les shooting stars en boucle 
+  const fire = () => { Animation.shootStar(svgRoot); gsap.delayedCall(Math.random() * 12 + 8, fire); };
   gsap.delayedCall(4 + Math.random() * 3, fire);
 
   return tl;
@@ -265,11 +303,15 @@ let V = {
  * Initialise la vue
  */
 V.init = function() {
-  const fragment = V.createPageFragment();
+  let fragment = V.createPageFragment();
   V.attachEvents(fragment);
   
+  // Lancer l'animation APRÈS que le DOM soit mis à jour
+  // requestAnimationFrame garantit que le SVG est bien dans le DOM
   requestAnimationFrame(() => {
-    requestAnimationFrame(() => C.animateTreeEntry());
+    requestAnimationFrame(() => {
+      C.animateTreeEntry();
+    });
   });
   
   return fragment;
@@ -281,6 +323,7 @@ V.init = function() {
 V.createPageFragment = function() {
   V.rootPage = htmlToDOM(template);
   
+  // Créer le composant TreeSkills avec les couleurs du Model
   V.treeSkills = new TreeSkillsView(M.LEVEL_COLORS);
   V.radarView = new RadarView();
   V.popupAC = new PopupACView();
@@ -294,11 +337,17 @@ V.createPageFragment = function() {
   V.rootPage.querySelector('slot[name="popup-ac"]').replaceWith(V.popupAC.dom());
   V.rootPage.querySelector('slot[name="btn-export"]').replaceWith(V.btnExport);
   V.rootPage.querySelector('slot[name="btn-toggle-view"]').replaceWith(V.btnToggleView.dom());
+  
+  // Injecter le bouton historique dans le slot
   V.rootPage.querySelector('slot[name="btn-historique"]').replaceWith(V.btnHistorique.dom());
   
   document.body.appendChild(V.popupHistorique.dom());
   
-  V.radarView.init(M.getCompetenceAverages());
+  // Initialiser le radar avec les données actuelles
+  const averages = M.getCompetenceAverages();
+  V.radarView.init(averages);
+  
+  // Appliquer les progressions chargées depuis localStorage 
   V.applyStoredProgressions();
   
   return V.rootPage;
@@ -308,19 +357,33 @@ V.createPageFragment = function() {
  * Attache les événements aux composants
  */
 V.attachEvents = function(fragment) {
+  // Attacher les événements des popups
   V.popupAC.attachEvents();
   V.popupAC.initSlider();
   V.popupAC.setOnValidate(C.handler_validateAC);
   V.popupHistorique.attachEvents();
   V.btnHistorique.onClick(C.handler_openHistorique);
   
-  V.treeSkills.getAllACs().forEach(acElement => {
+  // Attacher les clics sur les AC directement (pas via le composant)
+  const allACs = V.treeSkills.getAllACs();
+  allACs.forEach(acElement => {
     acElement.style.cursor = 'pointer';
-    acElement.addEventListener('mouseenter', () => acElement.classList.add('ac-hover'));
-    acElement.addEventListener('mouseleave', () => acElement.classList.remove('ac-hover'));
-    acElement.addEventListener('click', () => C.handler_clickOnAC(acElement.id));
+    
+    // Hover
+    acElement.addEventListener('mouseenter', () => {
+      acElement.classList.add('ac-hover');
+    });
+    acElement.addEventListener('mouseleave', () => {
+      acElement.classList.remove('ac-hover');
+    });
+    
+    // Click
+    acElement.addEventListener('click', () => {
+      C.handler_clickOnAC(acElement.id);
+    });
   });
   
+  // Attacher l'événement du bouton toggle
   V.btnToggleView.setOnClick(C.handler_toggleView);
 
   return fragment;
@@ -330,24 +393,28 @@ V.attachEvents = function(fragment) {
  * Applique les progressions sauvegardées
  */
 V.applyStoredProgressions = function() {
-  for (const acCode in M.progressions) {
-    if (M.progressions[acCode] > 0) {
-      V.treeSkills.updateACVisual(acCode, M.progressions[acCode]);
+    // Mettre à jour les visuels des AC
+    for (const acCode in M.progressions) {
+      if (M.progressions[acCode] > 0) {
+        V.treeSkills.updateACVisual(acCode, M.progressions[acCode]);
+      }
     }
-  }
-  
-  for (const acCode in M.proofs) {
-    if (M.proofs[acCode]) {
-      V.treeSkills.setProofIndicator(acCode, M.proofs[acCode]);
+    
+    // Appliquer les indicateurs de preuve pour les AC qui en ont
+    for (const acCode in M.proofs) {
+      if (M.proofs[acCode]) {
+        V.treeSkills.setProofIndicator(acCode, M.proofs[acCode]);
+      }
     }
-  }
-  
-  const levelProgressions = M.getAllLevelProgressions();
-  for (const levelId in levelProgressions) {
-    V.treeSkills.updateLevelVisuals(`level_${levelId}`, levelProgressions[levelId]);
-  }
-  
-  V.treeSkills.showAllACLabels(M.progressions);
+    
+    // Calculer et mettre à jour tous les niveaux
+    const levelProgressions = M.getAllLevelProgressions();
+    for (const levelId in levelProgressions) {
+      V.treeSkills.updateLevelVisuals(levelId, levelProgressions[levelId]);
+    }
+    
+    // Afficher les labels des AC
+    V.treeSkills.showAllACLabels(M.progressions);
 }
 
 export function SvgMaDemoPage() {

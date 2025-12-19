@@ -1,53 +1,113 @@
-.radar-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: var(--spacing-md);
-    background: var(--color-black);
-    box-sizing: border-box;
-    overflow: hidden;
+/* === RADAR VIEW STYLES === */
+
+/* Polygone de données */
+.radar-polygon {
+  fill: rgba(255, 255, 255, 0.1);
+  stroke: #FFFFFF;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+  transition: all 0.3s ease;
 }
 
-.radar-header {
-    text-align: center;
-    margin-bottom: var(--spacing-md);
-    flex-shrink: 0;
+.radar-polygon:hover {
+  fill: rgba(255, 255, 255, 0.15);
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
 }
 
-.radar-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--color-white);
-    margin-bottom: var(--spacing-xs);
-    letter-spacing: 1px;
+/* Points sur le radar */
+.radar-point {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  filter: drop-shadow(0 0 4px currentColor);
 }
 
-.radar-subtitle {
-    font-size: 12px;
-    color: var(--color-stroke-default);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.radar-chart-wrapper {
-    width: 100%;
-    max-width: 500px;
-    aspect-ratio: 1;
-    position: relative;
-    margin-bottom: var(--spacing-md);
-    flex-shrink: 0;
-}
-
-.radar-svg {
-    width: 100%;
-    height: 100%;
-    filter: drop-shadow(0 0 20px rgba(110, 114, 117, 0.3));
+.radar-point:hover {
+  transform: scale(1.3);
+  filter: drop-shadow(0 0 8px currentColor);
 }
 
 /* Grille du radar */
+#Group_2 path {
+  stroke: #333333;
+  stroke-width: 1;
+  fill: none;
+  opacity: 0.6;
+}
+
+#Group_4 path {
+  stroke: #333333;
+  stroke-width: 1;
+  opacity: 0.4;
+}
+
+/* Labels des compétences */
+#Group_6 text {
+  fill: white;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-anchor: middle;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Labels des pourcentages */
+#Group_13 text {
+  fill: #666666;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+/* Légende en bas */
+#Container_3 text {
+  fill: white;
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Carrés de couleur dans la légende */
+#Container_3 path {
+  transition: all 0.2s ease;
+}
+
+#Container_3 g:hover path {
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+#Container_3 g:hover text {
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+}
+
+/* Titre et sous-titre */
+#Heading text {
+  fill: white;
+  font-family: 'Arial', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+#Paragraph text {
+  fill: #6A7282;
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
+  letter-spacing: 4.2px;
+}
+
+/* Animation du SVG radar */
+#graphe {
+  transform-origin: center;
+}
+
+/* Effet de glow au survol du graphe */
+#Icon:hover .radar-polygon {
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 2.5;
+}
+
 .radar-grid line {
     stroke: var(--color-stroke-default);
     stroke-width: 1;

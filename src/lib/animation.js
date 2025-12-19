@@ -725,37 +725,159 @@ Animation.competitionCompletionFireworks = function(svgRoot, options = {}) {
 };
 
 /**
- * Animation d'entrée du radar
+ * Animation d'entrée complète du radar
  * @param {HTMLElement} radarRoot - L'élément racine du radar
  * @param {Object} options - Options de l'animation
  */
 Animation.radarEntry = function(radarRoot, options = {}) {
   if (!radarRoot) return null;
   
-  const duration = options.duration || 0.8;
-  const polygon = radarRoot.querySelector('.radar-data polygon');
-  const circles = radarRoot.querySelectorAll('.radar-data circle');
+  const center = options.center || { x: 448, y: 350 };
+  const polygon = radarRoot.querySelector('.radar-polygon');
+  const points = radarRoot.querySelectorAll('.radar-point');
+  const labels = radarRoot.querySelectorAll('#Group_6 text');
+  const gridLines = radarRoot.querySelectorAll('#Group_2 path');
+  const gridLabels = radarRoot.querySelectorAll('#Group_13 text');
+  
+  const tl = gsap.timeline({ delay: options.delay || 0.2 });
+  
+  // 1. Fade in des lignes de grille
+  if (gridLines.length) {
+    tl.from(gridLines, {
+      opacity: 0,
+      scale: 0.5,
+      transformOrigin: `${center.x}px ${center.y}px`,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: 'power2.out'
+    });
+  }
+  
+  // 2. Fade in des labels de grille (0, 25, 50, 75, 100)
+  if (gridLabels.length) {
+    tl.from(gridLabels, {
+      opacity: 0,
+      y: -10,
+      duration: 0.4,
+      stagger: 0.05,
+      ease: 'power1.out'
+    }, '-=0.3');
+  }
+  
+  // 3. Apparition des labels de compétences
+  if (labels.length) {
+    tl.from(labels, {
+      opacity: 0,
+      scale: 0.8,
+      duration: 0.5,
+      stagger: 0.08,
+      ease: 'back.out(1.2)'
+    }, '-=0.2');
+  }
+  
+  // 4. Tracé du polygone (effet de dessin)
+  if (polygon) {
+    tl.fromTo(polygon,
+      { 
+        opacity: 0,
+        scale: 0.3,
+        transformOrigin: `${center.x}px ${center.y}px`
+      },
+      {
+        opacity: 1,
+        scale: 1,
+        duration: 0.8,
+        ease: 'power2.out'
+      }
+    );
+  }
+  
+  // 5. Apparition des points avec effet de rebond
+  if (points.length) {
+    points.forEach((point, i) => {
+      tl.fromTo(point,
+        { 
+          opacity: 0,
+          scale: 0 
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.4,
+          ease: 'back.out(1.7)',
+          transformOrigin: 'center'
+        },
+        `-=${0.2 - i * 0.1}`
+      );
+    });
+  }
+  
+  // 6. Animation continue : respiration du polygone
+  if (polygon) {
+    gsap.to(polygon, {
+      opacity: 0.9,
+      duration: 2,
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut',
+      delay: tl.duration()
+    });
+  }
+  
+  // 7. Animation continue : pulse des points
+  if (points.length) {
+    points.forEach((point, i) => {
+      gsap.to(point, {
+        scale: 1.2,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: 'sine.inOut',
+        delay: tl.duration() + i * 0.15
+      });
+    });
+  }
+  
+  return tl;
+};
+
+/**
+ * Animation de mise à jour du radar
+ * @param {HTMLElement} radarRoot - L'élément racine du radar
+ * @param {Object} options - Options de l'animation
+ */
+Animation.radarUpdate = function(radarRoot, options = {}) {
+  if (!radarRoot) return null;
+  
+  const center = options.center || { x: 448, y: 350 };
+  const polygon = radarRoot.querySelector('.radar-polygon');
+  const points = radarRoot.querySelectorAll('.radar-point');
   
   const tl = gsap.timeline();
   
+  // Pulse du polygone
   if (polygon) {
-    tl.from(polygon, {
-      scale: 0,
-      transformOrigin: 'center',
-      duration: duration,
-      ease: 'back.out(1.7)'
-    }, 0);
+    tl.to(polygon, {
+      scale: 1.05,
+      transformOrigin: `${center.x}px ${center.y}px`,
+      duration: 0.3,
+      ease: 'power2.out',
+      yoyo: true,
+      repeat: 1
+    });
   }
   
-  circles.forEach((circle, i) => {
-    tl.from(circle, {
-      scale: 0,
-      transformOrigin: 'center',
-      duration: duration * 0.625,
-      delay: 0.2 + i * 0.1,
-      ease: 'back.out(1.7)'
-    }, 0);
-  });
+  // Pulse des points
+  if (points.length) {
+    tl.to(points, {
+      scale: 1.3,
+      duration: 0.25,
+      stagger: 0.05,
+      ease: 'back.out(2)',
+      yoyo: true,
+      repeat: 1
+    }, '-=0.3');
+  }
   
   return tl;
 };

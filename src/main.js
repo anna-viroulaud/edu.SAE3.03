@@ -16,8 +16,6 @@ const router = new Router("app");
 
 // router.addLayout("/", RootLayout);
 
-
-
 router.addRoute("/svg-demo1", SvgDemo1Page);
 
 router.addRoute("/svg-demo2", SvgDemo2Page);
